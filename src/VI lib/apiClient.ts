@@ -1,83 +1,86 @@
 import { Movie } from "@/V types/Movie";
+import { moviesInDb } from "./constants/constants";
 
-function extractImdbId(imdbLink: string): string | null {
-  let imdbId = "";
-  let isFound = false; // Flag to check if "tt" is found
+export async function fetchSearchResults(query: string, tmdbKey: string) {
+  console.log("Start movie search fetching...");
+  console.log("tmdbkey: ", tmdbKey);
 
-  for (const char of imdbLink) {
-    if (!isFound) {
-      // Look for "tt"
-      if (imdbId.endsWith("t") && char === "t") {
-        isFound = true; // "tt" is found
-        imdbId = "tt";
-      } else {
-        imdbId = char === "t" ? "t" : ""; // Reset if a single 't' is found
-      }
-    } else {
-      // Collect numeric characters after "tt"
-      if (/\d/.test(char)) {
-        imdbId += char;
-      } else {
-        break; // Stop if a non-numeric character is found
-      }
-    }
+  if (!tmdbKey) {
+    throw new Error("Missing TMDB API key. Set it in your .env file.");
   }
 
-  return isFound ? imdbId : null; // Return the IMDb ID or null if not found
-}
+  const netzkinoUrl = `https://api.netzkino.de.simplecache.net/capi-2.0a/search?q=${query}`;
 
-export async function fetchSearchResults(imdbId: string, query: string) {
-  console.log("Start movie search fetching...");
-  const netzkinoKey = process.env.NETZKINO_KEY;
-  const tmdbKey = process.env.TMDB_KEY;
-
-  const netzkinoUrl = `https://api.netzkino.de.simplecache.net/capi-2.0a/search?q=cate&d=${netzkinoKey}`;
-  const tmdbUrl = `https://api.themoviedb.org/3/find/${imdbId}?api_key=${tmdbKey}&language=en-US&external_source=imdb_id`;
-
-  // fetching from netzkinoAPI
+  // Fetching from Netzkino API
   const response = await fetch(netzkinoUrl);
-  if (!response.ok) throw new Error("Failed to fetch movies from netzkino");
+  if (!response.ok) throw new Error("Failed to fetch movies from Netzkino");
   const data = await response.json();
-  console.log("Netzkino response: "), data;
   const netzkinoMovies = data.posts;
 
-  if (response == null) {
-    const fallback: [] = [];
+  if (!netzkinoMovies || netzkinoMovies.length === 0) {
     console.log("No movies found from API 1.");
-    return fallback;
+    return [];
   }
 
   const fetchedMovies: Movie[] = [];
   for (const movie of netzkinoMovies) {
-    console.log(movie);
-    if (!movie) continue;
-    // step1: extract imdb-Link & cutout imdbId
-    const imdbLink = movie.custom_fields["IMDb-Link"];
-    const imdbId = extractImdbId(imdbLink);
-    // step2: fetch from tmdb with imdbId
-    const response = await fetch(tmdbUrl);
-    if (!response.ok) throw new Error("Failed to fetch movies from netzkino");
-    const data = await response.json();
-    console.log("Tmdb response: ", data);
-    // step3: extract posterpath & concatenate with image baseUrl
-    const imdbMovieImgPath = data.movie_results[0].poster_path;
-    const imgUrl = `"https://image.tmdb.org/t/p/w500"${imdbMovieImgPath}`;
+    console.log("Processing movie:", movie.title);
+
+    // 🎯 Extract IMDb ID inline
+    const imdbId =
+      movie.custom_fields?.["IMDb-Link"]?.[0]?.match(/tt\d+/)?.[0] || null;
+
+    if (!imdbId) {
+      console.warn(
+        `⚠ Skipping movie "${movie.title}" - No valid IMDb ID found.`
+      );
+      continue;
+    }
+
+    console.log(`✅ IMDb ID for "${movie.title}":`, imdbId);
+
+    // Fetch from TMDB
+    const tmdbUrl = `https://api.themoviedb.org/3/find/${imdbId}?api_key=${tmdbKey}&language=en-US&external_source=imdb_id`;
+    const tmdbResponse = await fetch(tmdbUrl);
+    if (!tmdbResponse.ok) {
+      console.error(`Failed to fetch TMDB data for IMDb ID: ${imdbId}`);
+      continue;
+    }
+    const tmdbData = await tmdbResponse.json();
+    console.log("Tmdb response: ", tmdbData);
+
+    // Get poster path
+    const imdbMovieImgPath =
+      tmdbData?.movie_results?.length > 0
+        ? tmdbData.movie_results[0].poster_path
+        : null;
+
+    // Use a placeholder if no image is found
+    const placeholderImgUrl =
+      "https://via.placeholder.com/500x750?text=No+Image+Available";
+    const imgUrl = imdbMovieImgPath
+      ? `https://image.tmdb.org/t/p/w500${imdbMovieImgPath}`
+      : placeholderImgUrl;
+
+    // Construct movie object
+    const year = movie.custom_fields?.["Jahr"]?.[0] || "Unknown";
+    console.log(`🎬 Year for "${movie.title}":`, year); // Debugging log ✅
 
     const processedMovie: Movie = {
       slug: movie.slug,
       title: movie.title,
-      overview: movie.content,
-      year: movie.custom_fields.jahr,
+      overview: movie.content || "No description available",
+      year: year,
       imgUrl: imgUrl,
     };
 
+    // Prevent duplicates
     if (!fetchedMovies.some((m) => m.slug === processedMovie.slug)) {
       fetchedMovies.push(processedMovie);
-
-      //   movieRepo.save(movie); --------- save movies to database? is there an array that is being fetched when the application starts? Do we need a check here or earlier if movie already exists in that array? pseudo caching...
+      moviesInDb.push(processedMovie);
     }
-
-    return fetchedMovies;
   }
-  console.log("fetchedMovies after complete process: ", fetchedMovies);
+
+  console.log("Fetched movies after complete process: ", fetchedMovies);
+  return fetchedMovies;
 }
