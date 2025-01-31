@@ -39,6 +39,14 @@ export async function fetchSearchResults(query: string, tmdbKey: string) {
 
     console.log(`✅ IMDb ID for "${movie.title}":`, imdbId);
 
+    // ✅ Check if the movie already exists in moviesInDb
+    const existsInDb = moviesInDb.some((m) => m.slug === movie.slug);
+
+    if (existsInDb) {
+      console.log(`⏭ Skipping "${movie.title}" - Already exists in database.`);
+      continue;
+    }
+
     // Fetch from TMDB
     const tmdbUrl = `https://api.themoviedb.org/3/find/${imdbId}?api_key=${tmdbKey}&language=en-US&external_source=imdb_id`;
     const tmdbResponse = await fetch(tmdbUrl);
@@ -74,11 +82,9 @@ export async function fetchSearchResults(query: string, tmdbKey: string) {
       imgUrl: imgUrl,
     };
 
-    // Prevent duplicates
-    if (!fetchedMovies.some((m) => m.slug === processedMovie.slug)) {
-      fetchedMovies.push(processedMovie);
-      moviesInDb.push(processedMovie);
-    }
+    // Add movie to results
+    fetchedMovies.push(processedMovie);
+    moviesInDb.push(processedMovie);
   }
 
   console.log("Fetched movies after complete process: ", fetchedMovies);
