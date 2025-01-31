@@ -6,10 +6,18 @@ export async function fetchSearchResults(imdbId: string, query: string) {
   const netzkinoUrl = `https://api.netzkino.de.simplecache.net/capi-2.0a/search?q=cate&d=${netzkinoKey}`;
   const tmdbUrl = `https://api.themoviedb.org/3/find/${imdbId}?api_key=${tmdbKey}&language=en-US&external_source=imdb_id`;
 
+  // fetching from netzkinoAPI
   const response = await fetch(netzkinoUrl);
   if (!response.ok) throw new Error("Failed to fetch movies from netzkino");
-  const data = await response.json();
-  console.log("searchMovies response: ", data);
+  const fetchedMovies = await response.json();
 
-  return data;
+  console.log("Netzkino response: ", fetchedMovies);
+
+  if (response == null) {
+    const fallback: [] = [];
+    console.log("No movies found from API 1.");
+    return fallback;
+  }
+
+  return fetchedMovies;
 }
