@@ -8,53 +8,73 @@ export default async function handler(
 ) {
   await dbConnect();
 
-  if (req.method === "GET") {
-    const { query } = req.query; // Extract query from URL parameters
-
-    if (query) {
-      return getMovieByQuery(req, res, query as string);
-    } else {
-      return getAllMovies(req, res);
-    }
-  } else {
-    return res.status(405).json({ status: "Method Not Allowed" });
+  switch (req.method) {
+    case "GET":
+      return req.query.query ? getMovieByQuery(req, res) : getAllMovies(res);
+    case "POST":
+      return Array.isArray(req.body)
+        ? postMovies(req, res)
+        : postMovie(req, res);
+    default:
+      return res.status(405).json({ status: "Method Not Allowed" });
   }
 }
 
-async function getAllMovies(req: NextApiRequest, res: NextApiResponse) {
+const getAllMovies = async (res: NextApiResponse) => {
   try {
     const movies = await Movie.find();
-
-    if (!movies || movies.length === 0) {
-      return res.status(404).json({ status: "Not Found" });
-    }
-
-    return res.status(200).json(movies);
-  } catch (error) {
     return res
-      .status(500)
-      .json({ status: "Error fetching movies", error: error });
+      .status(movies.length ? 200 : 404)
+      .json(movies.length ? movies : { status: "Not Found" });
+  } catch (error) {
+    return handleError(res, "Error fetching movies", error);
   }
-}
+};
 
-async function getMovieByQuery(
-  req: NextApiRequest,
-  res: NextApiResponse,
-  query: string
-) {
+const getMovieByQuery = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    const movies = await Movie.find({ queries: query });
-
-    if (!movies || movies.length === 0) {
-      return res
-        .status(404)
-        .json({ status: "No movies found for the given query" });
-    }
-
-    return res.status(200).json(movies);
-  } catch (error) {
+    const movies = await Movie.find({ queries: req.query.query });
     return res
-      .status(500)
-      .json({ status: "Error fetching movies", error: error });
+      .status(movies.length ? 200 : 404)
+      .json(
+        movies.length
+          ? movies
+          : { status: "No movies found for the given query" }
+      );
+  } catch (error) {
+    return handleError(res, "Error fetching movies", error);
   }
-}
+};
+
+const postMovie = async (req: NextApiRequest, res: NextApiResponse) => {
+  try {
+    const newMovie = await Movie.create(req.body);
+    return res
+      .status(201)
+      .json({ success: true, status: "Movie created", data: newMovie });
+  } catch (error) {
+    return handleError(res, "Error creating movie", error, 400);
+  }
+};
+
+const postMovies = async (req: NextApiRequest, res: NextApiResponse) => {
+  try {
+    const newMovies = await Movie.insertMany(req.body);
+    return res
+      .status(201)
+      .json({ success: true, status: "Movies created", data: newMovies });
+  } catch (error) {
+    return handleError(res, "Error creating movies", error, 400);
+  }
+};
+
+const handleError = (
+  res: NextApiResponse,
+  message: string,
+  error: any,
+  statusCode = 500
+) => {
+  return res
+    .status(statusCode)
+    .json({ success: false, status: message, error: error.message || error });
+};

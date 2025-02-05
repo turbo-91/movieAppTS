@@ -34,7 +34,9 @@ export async function fetchMoviesOfTheDay(
 
     const movies: IMovie[] = response.data.posts.map((movie: any) => {
       const imdbLink = movie.custom_fields?.["IMDb-Link"]?.[0];
+      console.log("imdbLink in movie", imdbLink);
       const imgImdb = imdbLink ? idToImg(imdbLink) : null;
+      console.log("imdgImdb in movie after extraction", imgImdb);
 
       return {
         netzkinoId: movie.id,
@@ -51,15 +53,18 @@ export async function fetchMoviesOfTheDay(
       };
     });
 
+    console.log("movies vor return", movies);
+
+    postMovies(movies);
+
+    // post route queries bauen
+    // post query to list
+
     return movies;
   } catch (error) {
     console.error("Error fetching movies:", error);
     return [];
   }
-}
-
-export async function saveMoviesToDB(movies: string[]) {
-  console.log("movies saved :", movies);
 }
 
 export async function getAllMoviesFromDB() {
@@ -70,4 +75,24 @@ export async function getAllMoviesFromDB() {
 export async function getMoviesByQuery(query: string) {
   await dbConnect();
   return await Movie.find({ queries: query });
+}
+
+export async function postMovies(movies) {
+  await dbConnect();
+
+  if (!Array.isArray(movies) || movies.length === 0) {
+    throw new Error("Invalid input: movies must be a non-empty array");
+  }
+
+  try {
+    const newMovies = await Movie.insertMany(movies);
+    return {
+      success: true,
+      status: "Movies successfully added",
+      data: newMovies,
+    };
+  } catch (error) {
+    console.error("Error posting movies:", error);
+    throw new Error("Error inserting movies into the database");
+  }
 }
