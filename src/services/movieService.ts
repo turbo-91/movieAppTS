@@ -1,23 +1,23 @@
-import dbConnect from "@/db/mongodb";
-import Movie from "@/db/models/Movie";
+import dbConnect from "../db/mongodb";
 import axios from "axios";
-import { IMovie } from "@/db/models/Movie";
-import { idToImg } from "@/lib/iDtoImg";
+import Movie from "../db/models/Movie";
+import { IMovie } from "../db/models/Movie";
+import { idToImg } from "../lib/iDtoImg";
+import Query from "../db/models/Query";
 
-export async function fetchMoviesOfTheDay(
-  names: string[],
-  usedQueries: string[]
-) {
+export async function fetchMoviesOfTheDay(names: string[]) {
   await dbConnect();
 
   const query = names[Math.floor(Math.random() * names.length)];
+  const usedQueries = await getAllQueriesFromDB();
   const netzkinoKey = process.env.NEXT_PUBLIC_NETZKINO_KEY;
 
   const netzkinoURL = `https://api.netzkino.de.simplecache.net/capi-2.0a/search`;
 
   // query has already been used: movies in database
+  console.log("query before querycheck", query);
 
-  if (usedQueries.includes(query)) {
+  if (usedQueries.some((q) => q.query.includes(query))) {
     return getMoviesByQuery(query);
   }
 
@@ -56,28 +56,44 @@ export async function fetchMoviesOfTheDay(
     console.log("movies vor return", movies);
 
     postMovies(movies);
-
-    // post route queries bauen
-    // post query to list
-
+    postQuery(query);
     return movies;
   } catch (error) {
-    console.error("Error fetching movies:", error);
-    return [];
+    console.error(
+      `Error fetching movies for query "${query}" from Netzkino API:`,
+      error
+    );
+    return {
+      success: false,
+      error:
+        "We encountered an error retrieving movies. Please try again later.",
+    };
   }
 }
 
 export async function getAllMoviesFromDB() {
   await dbConnect();
-  return await Movie.find();
+  try {
+    const movies = await Movie.find();
+    return movies;
+  } catch (error) {
+    console.error("Error fetching all movies from DB:", error);
+    throw new Error("Unable to fetch movies from the database");
+  }
 }
 
 export async function getMoviesByQuery(query: string) {
   await dbConnect();
-  return await Movie.find({ queries: query });
+  try {
+    const movies = await Movie.find({ queries: query });
+    return movies;
+  } catch (error) {
+    console.error(`Error fetching movies for query "${query}" from DB:`, error);
+    throw new Error("Unable to fetch movies for the specified query");
+  }
 }
 
-export async function postMovies(movies) {
+export async function postMovies(movies: IMovie[]) {
   await dbConnect();
 
   if (!Array.isArray(movies) || movies.length === 0) {
@@ -94,5 +110,36 @@ export async function postMovies(movies) {
   } catch (error) {
     console.error("Error posting movies:", error);
     throw new Error("Error inserting movies into the database");
+  }
+}
+
+export async function getAllQueriesFromDB() {
+  await dbConnect();
+  try {
+    const queries = await Query.find();
+    return queries;
+  } catch (error) {
+    console.error("Error fetching queries from DB:", error);
+    throw new Error("Unable to fetch queries");
+  }
+}
+
+export async function postQuery(query: string) {
+  await dbConnect();
+
+  if (!query || typeof query !== "string") {
+    throw new Error("Invalid input: query must be a non-empty string");
+  }
+
+  try {
+    const newQuery = await Query.create({ query });
+    return {
+      success: true,
+      status: "Query successfully added",
+      data: newQuery,
+    };
+  } catch (error) {
+    console.error("Error posting query:", error);
+    throw new Error("Error inserting query into the database");
   }
 }
