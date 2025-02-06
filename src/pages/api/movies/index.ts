@@ -1,8 +1,9 @@
 import Movie from "@/db/models/Movie";
 import dbConnect from "@/db/mongodb";
+import handleApiError from "@/lib/handleApiError";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-export default async function handler(
+export default async function moviesHandler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
@@ -27,7 +28,7 @@ const getAllMovies = async (res: NextApiResponse) => {
       .status(movies.length ? 200 : 404)
       .json(movies.length ? movies : { status: "Not Found" });
   } catch (error) {
-    return handleError(res, "Error fetching movies", error);
+    return handleApiError(res, "Error fetching movies", error);
   }
 };
 
@@ -42,7 +43,7 @@ const getMovieByQuery = async (req: NextApiRequest, res: NextApiResponse) => {
           : { status: "No movies found for the given query" }
       );
   } catch (error) {
-    return handleError(res, "Error fetching movies", error);
+    return handleApiError(res, "Error fetching movies", error);
   }
 };
 
@@ -53,7 +54,7 @@ const postMovie = async (req: NextApiRequest, res: NextApiResponse) => {
       .status(201)
       .json({ success: true, status: "Movie created", data: newMovie });
   } catch (error) {
-    return handleError(res, "Error creating movie", error, 400);
+    return handleApiError(res, "Error creating movie", error, 400);
   }
 };
 
@@ -64,17 +65,6 @@ const postMovies = async (req: NextApiRequest, res: NextApiResponse) => {
       .status(201)
       .json({ success: true, status: "Movies created", data: newMovies });
   } catch (error) {
-    return handleError(res, "Error creating movies", error, 400);
+    return handleApiError(res, "Error creating movies", error, 400);
   }
-};
-
-const handleError = (
-  res: NextApiResponse,
-  message: string,
-  error: any,
-  statusCode = 500
-) => {
-  return res
-    .status(statusCode)
-    .json({ success: false, status: message, error: error.message || error });
 };
