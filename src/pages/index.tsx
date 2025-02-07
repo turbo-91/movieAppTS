@@ -5,6 +5,7 @@ import { fetcher } from "@/lib/fetcher";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Slider from "react-slick";
+import SliderCard from "@/components/SliderCard";
 
 export default function Home() {
   const { data, error } = useSWR("api/moviesoftheday", fetcher, {
@@ -23,8 +24,8 @@ export default function Home() {
     slidesToShow: 3,
     slidesToScroll: 1,
     autoplay: true,
-    speed: 2000,
-    autoplaySpeed: 2000,
+    speed: 10000,
+    autoplaySpeed: 0,
     cssEase: "linear",
   };
 
@@ -33,13 +34,7 @@ export default function Home() {
       <h1>Movies of the Day</h1>
       <Slider {...settings}>
         {data.map((movie: IMovie) => (
-          <li key={movie.netzkinoId}>
-            <h2>
-              {movie.title} ({movie.year})
-            </h2>
-            <p>{movie.overview}</p>
-            <img src={movie.imgNetzkino} alt={movie.title} width="200" />
-          </li>
+          <SliderCard key={movie.netzkinoId} movie={movie} />
         ))}
       </Slider>
     </div>
