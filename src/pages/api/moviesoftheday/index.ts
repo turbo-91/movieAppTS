@@ -14,228 +14,182 @@ interface TmdbResponse {
   movie_results: TmdbMovieResult[];
 }
 
+// API Route Hanlder
 export default async function moviesDayHandler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   await dbConnect();
 
-  switch (req.method) {
-    case "GET":
-      return getMoviesOfTheDay(names, res);
-    default:
-      return res.status(405).json({ status: "Method Not Allowed" });
+  if (req.method !== "GET") {
+    return res.status(405).json({ status: "Method Not Allowed" });
   }
+
+  return getMoviesOfTheDay(names, res);
 }
 
-export async function getMoviesOfTheDay(names: string[], res: NextApiResponse) {
-  await dbConnect();
-
-  const query = names[Math.floor(Math.random() * names.length)];
-  const usedQueries = await getAllQueriesFromDB();
-  console.log("usedQueries in beginning", usedQueries);
-  const netzkinoKey = process.env.NEXT_PUBLIC_NETZKINO_KEY;
+// Step 1: do we already have the necessary data in our database?
+async function getMoviesOfTheDay(names: string[], res: NextApiResponse) {
+  // Check if movies have already been fetched for today
   const today = new Date().toLocaleDateString();
-
-  const netzkinoURL = `https://api.netzkino.de.simplecache.net/capi-2.0a/search`;
-
-  // Check if today's movies already exist in the database
-  const todaysMovies = await Movie.find({ dateFetched: today });
-  if (todaysMovies.length > 0) {
-    console.log("Returning movies already fetched for today");
-    return res.status(200).json(todaysMovies.slice(0, 5));
+  const existingMovies = await getStoredMoviesForToday(today);
+  if (existingMovies.length > 0) {
+    return res.status(200).json(existingMovies.slice(0, 5));
   }
 
-  // query has already been used: movies in database
-  console.log("query before querycheck", query);
+  // Check if query related data already exists in our database
+  const query = names[Math.floor(Math.random() * names.length)];
+  const usedQueries = await getAllQueriesFromDB();
 
   if (usedQueries.some((q) => q.query.includes(query))) {
-    const usedMovies = await getMoviesByQuery(query);
-    return res.status(200).json(usedMovies.slice(0, 5));
+    const storedMovies = await getMoviesByQuery(query);
+    return res.status(200).json(storedMovies.slice(0, 5));
   }
 
   // query has not been used yet: fetch movies from APIs
-
   try {
-    const response = await axios.get(
-      `${netzkinoURL}?q=${query}&d=${netzkinoKey}`
-    );
-
-    if (!response.data || !Array.isArray(response.data.posts)) {
-      throw new Error("Invalid API response");
-    }
-
-    if (response.data.posts.length === 0) {
-      getMoviesOfTheDay(names, res);
-    }
-
-    console.log("netzkino response data", response.data);
-
-    const movies: IMovie[] = await Promise.all(
-      response.data.posts.map(async (movie: any) => {
-        const imdbLink = movie.custom_fields?.["IMDb-Link"]?.[0];
-        console.log("imdbLink in movie", imdbLink);
-        const imdbFetchLink = idToImg(imdbLink);
-        console.log("imdbId in movie after extraction", imdbFetchLink);
-        const imgImdb = await fetchMoviePosterFromTmdb(
-          imdbFetchLink,
-          movie.title
-        ); // Now correctly awaited
-
-        return {
-          netzkinoId: movie.id,
-          slug: movie.slug,
-          title: movie.title,
-          year: movie.custom_fields?.Jahr[0],
-          overview: movie.content || "No overview available",
-          imgNetzkino:
-            movie.custom_fields?.featured_img_all?.[0] || movie.thumbnail,
-          imgNetzkinoSmall:
-            movie.custom_fields?.featured_img_all_small?.[0] || movie.thumbnail,
-          imgImdb: imgImdb,
-          queries: query,
-          dateFetched: today,
-        };
-      })
-    );
-
-    // const movies: IMovie[] = response.data.posts.map((movie: any) => {
-    //   const imdbLink = movie.custom_fields?.["IMDb-Link"]?.[0];
-    //   console.log("imdbLink in movie", imdbLink);
-    //   const imgImdb = imdbLink ? idToImg(imdbLink) : null;
-    //   console.log("imdgImdb in movie after extraction", imgImdb);
-
-    //   return {
-    //     netzkinoId: movie.id,
-    //     slug: movie.slug,
-    //     title: movie.title,
-    //     year: movie.custom_fields?.Jahr[0],
-    //     overview: movie.content,
-    //     imgNetzkino:
-    //       movie.custom_fields?.featured_img_all?.[0] || movie.thumbnail, // need other fallback
-    //     imgNetzkinoSmall:
-    //       movie.custom_fields?.featured_img_all_small?.[0] || movie.thumbnail, // need other fallback
-    //     imgImdb: imgImdb,
-    //     queries: query,
-    //     dateFetched: today,
-    //   };
-    // });
-
-    console.log("movies vor return", movies);
-
-    postMovies(movies);
-    postQuery(query);
+    const movies = await fetchAndStoreMovies(query, today);
     return res.status(200).json(movies.slice(0, 5));
   } catch (error) {
-    console.error(
-      `Error fetching movies for query "${query}" from Netzkino API:`,
-      error
-    );
-    return {
+    console.error(`Error fetching movies for query "${query}":`, error);
+    return res.status(500).json({
       success: false,
       error:
         "We encountered an error retrieving movies. Please try again later.",
-    };
+    });
   }
 }
 
-export function idToImg(imdbLink: string) {
-  const imdbKey = process.env.NEXT_PUBLIC_TMDB_KEY;
-  const parts = imdbLink.split("/");
-  const imdbId = parts.find((part) => part.startsWith("tt"));
-  const imdbImgLink = `https://api.themoviedb.org/3/find/${imdbId}?api_key=${imdbKey}&language=de&external_source=imdb_id`;
-  return imdbImgLink;
+async function getStoredMoviesForToday(today: string) {
+  return Movie.find({ dateFetched: today });
 }
 
+// Step 2: fetch data from external APIs and store it
+async function fetchAndStoreMovies(query: string, today: string) {
+  const netzkinoKey = process.env.NEXT_PUBLIC_NETZKINO_KEY;
+  const netzkinoURL = `https://api.netzkino.de.simplecache.net/capi-2.0a/search?q=${query}&d=${netzkinoKey}`;
+
+  // start fetching from netzkino API
+  const response = await axios.get(netzkinoURL);
+  if (
+    !response.data ||
+    !Array.isArray(response.data.posts) ||
+    response.data.posts.length === 0
+  ) {
+    throw new Error("Invalid or empty API response");
+  }
+
+  // formate responses
+  const movies: IMovie[] = await Promise.all(
+    response.data.posts.map(async (movie: any) =>
+      formatMovieData(movie, query, today)
+    )
+  );
+
+  // post to db and return to frontend
+  console.log("movies final", movies);
+  await postMovies(movies);
+  await postQuery(query);
+  return movies;
+}
+
+async function formatMovieData(movie: any, query: string, today: string) {
+  // fetch additional image from TmdB
+  const imdbLink = movie.custom_fields?.["IMDb-Link"]?.[0] || "";
+  const imdbId = extractImdbId(imdbLink);
+  const imgImdb = imdbId
+    ? await fetchMoviePosterFromTmdb(imdbId, movie.title)
+    : "N/A";
+
+  // format final data in Movie Type
+  return {
+    netzkinoId: movie.id,
+    slug: movie.slug,
+    title: movie.title,
+    year: movie.custom_fields?.Jahr?.[0] || "Unknown",
+    regisseur: movie.custom_fields?.Regisseur?.[0] || "Unknown",
+    stars: movie.custom_fields?.Stars?.[0] || "Unknown",
+    overview: movie.content || "No overview available",
+    imgNetzkino:
+      movie.custom_fields?.featured_img_all?.[0] || movie.thumbnail || "",
+    imgNetzkinoSmall:
+      movie.custom_fields?.featured_img_all_small?.[0] || movie.thumbnail || "",
+    imgImdb: imgImdb,
+    queries: query,
+    dateFetched: today,
+  };
+}
+
+// Heloer function to extract ImdBId from Netzkino Response
+function extractImdbId(imdbLink: string) {
+  return imdbLink.split("/").find((part) => part.startsWith("tt")) || "";
+}
+
+// Helper function to fetch Movier Poster from ImdB
 async function fetchMoviePosterFromTmdb(
-  imdbFetchLink: string,
+  imdbId: string,
   title: string
 ): Promise<string> {
   const tmdbApiKey = process.env.NEXT_PUBLIC_TMDB_KEY;
-
-  console.log(`tmdb api key is `, tmdbApiKey);
+  const tmdbURL = `https://api.themoviedb.org/3/find/${imdbId}?api_key=${tmdbApiKey}&language=de&external_source=imdb_id`;
 
   try {
-    const response = await axios.get<TmdbResponse>(imdbFetchLink);
-    const tmdbInfo = response.data;
+    const response = await axios.get<TmdbResponse>(tmdbURL);
+    const movieResults = response.data?.movie_results || [];
 
-    if (
-      !tmdbInfo ||
-      !tmdbInfo.movie_results ||
-      tmdbInfo.movie_results.length === 0
-    ) {
-      console.log(`No additional entry found in TMDB for movie: ${title}`);
-      return "N/A";
-    }
-
-    const movieResult = tmdbInfo.movie_results[0];
-    return movieResult.poster_path
-      ? `https://image.tmdb.org/t/p/w500${movieResult.poster_path}`
+    return movieResults.length > 0 && movieResults[0].poster_path
+      ? `https://image.tmdb.org/t/p/w500${movieResults[0].poster_path}`
       : "N/A";
   } catch (error) {
-    console.error(`Error fetching data from TMDB for movie: ${title}`, error);
+    console.error(`Error fetching TMDB poster for "${title}":`, error);
     return "N/A";
   }
 }
 
-export async function getAllQueriesFromDB() {
-  await dbConnect();
+// Crud Operations
+
+async function getAllQueriesFromDB() {
   try {
-    const queries = await Query.find();
-    return queries;
+    return Query.find();
   } catch (error) {
     console.error("Error fetching queries from DB:", error);
     throw new Error("Unable to fetch queries");
   }
 }
 
-export async function getMoviesByQuery(query: string) {
-  await dbConnect();
+async function getMoviesByQuery(query: string) {
   try {
-    const movies = await Movie.find({ queries: query });
-    return movies;
+    return Movie.find({ queries: query });
   } catch (error) {
-    console.error(`Error fetching movies for query "${query}" from DB:`, error);
+    console.error(`Error fetching movies for query "${query}":`, error);
     throw new Error("Unable to fetch movies for the specified query");
   }
 }
 
-export async function postMovies(movies: IMovie[]) {
-  await dbConnect();
-
+async function postMovies(movies: IMovie[]) {
   if (!Array.isArray(movies) || movies.length === 0) {
     throw new Error("Invalid input: movies must be a non-empty array");
   }
 
   try {
-    const newMovies = await Movie.insertMany(movies);
-    return {
-      success: true,
-      status: "Movies successfully added",
-      data: newMovies,
-    };
+    await Movie.insertMany(movies);
+    console.log("Movies successfully added to DB.");
   } catch (error) {
-    console.error("Error posting movies:", error);
-    throw new Error("Error inserting movies into the database");
+    console.error("Error inserting movies into the database:", error);
+    throw new Error("Database insertion failed");
   }
 }
 
-export async function postQuery(query: string) {
-  await dbConnect();
-
+async function postQuery(query: string) {
   if (!query || typeof query !== "string") {
     throw new Error("Invalid input: query must be a non-empty string");
   }
 
   try {
-    const newQuery = await Query.create({ query });
-    return {
-      success: true,
-      status: "Query successfully added",
-      data: newQuery,
-    };
+    await Query.create({ query });
+    console.log("Query successfully added to DB.");
   } catch (error) {
-    console.error("Error posting query:", error);
-    throw new Error("Error inserting query into the database");
+    console.error("Error inserting query into the database:", error);
+    throw new Error("Database insertion failed");
   }
 }

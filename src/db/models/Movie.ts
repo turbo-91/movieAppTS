@@ -6,6 +6,8 @@ export interface IMovie extends Document {
   title: string;
   year: string;
   overview: string;
+  regisseur: string;
+  stars: string;
   imgNetzkino: string;
   imgNetzkinoSmall: string;
   imgImdb: string;
@@ -19,6 +21,8 @@ const movieSchema = new Schema<IMovie>({
   slug: { type: String, required: true },
   title: { type: String, required: true },
   year: { type: String, required: true },
+  regisseur: { type: String, required: true },
+  stars: { type: String, required: true },
   overview: { type: String, required: true },
   imgNetzkino: { type: String, required: true },
   imgNetzkinoSmall: { type: String, required: true },
