@@ -11,12 +11,16 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
+    "@types/react-slick": "^0.23.13",
     "axios": "^1.7.9",
     "mongodb": "^6.12.0",
     "next": "15.1.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "styled-components": "^6.0.2"
+    "react-slick": "^0.30.3",
+    "slick-carousel": "^1.8.1",
+    "styled-components": "^6.0.2",
+    "swr": "^2.3.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
