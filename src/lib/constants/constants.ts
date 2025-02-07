@@ -1,8 +1,4 @@
-import { Movie } from "@/types/Movie";
-
-const moviesInDb: Movie[] = [];
-
-const names: string[] = [
+export const names: string[] = [
   "Liam",
   "Noah",
   "Oliver",
@@ -269,7 +265,3 @@ const names: string[] = [
   "Margaret",
   "Piper",
 ];
-
-const usedQueries: string[] = ["Noah", "Oliver", "James"];
-
-export { moviesInDb, names, usedQueries };
