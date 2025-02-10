@@ -1,12 +1,12 @@
-// lib/mongodb.ts
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI =
+  "mongodb+srv://torbenJost:caWkwZVrb9W5Ljpg@cluster0.lhj4cxs.mongodb.net/moviesAppTS";
+console.log(MONGODB_URI);
 
 if (!MONGODB_URI) {
-  throw new Error(
-    "Please define the MONGODB_URI environment variable inside .env.local"
-  );
+  console.error("MONGODB_URI is undefined. Check your .env.local file.");
+  throw new Error("Please define the MONGODB_URI environment variable.");
 }
 
 let cached = global.mongoose;
@@ -29,7 +29,14 @@ async function dbConnect() {
       return mongoose;
     });
   }
-  cached.conn = await cached.promise;
+
+  try {
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null;
+    throw e;
+  }
+
   return cached.conn;
 }
 
