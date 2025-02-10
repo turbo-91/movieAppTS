@@ -3,5 +3,5 @@ projectKey=turbo-91_movieAppTS
 serverUrl=https://sonarcloud.io
 serverVersion=8.0.0.59590
 dashboardUrl=https://sonarcloud.io/dashboard?id=turbo-91_movieAppTS
-ceTaskId=AZTwQ95Cx6V7L5hvow6V
-ceTaskUrl=https://sonarcloud.io/api/ce/task?id=AZTwQ95Cx6V7L5hvow6V
+ceTaskId=AZTwSBUEgNy6UW01nRFo
+ceTaskUrl=https://sonarcloud.io/api/ce/task?id=AZTwSBUEgNy6UW01nRFo
