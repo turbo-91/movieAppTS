@@ -44,7 +44,11 @@ export default function Home() {
       ) : (
         <Slider {...settings}>
           {data.map((movie: IMovie) => (
-            <div key={movie.netzkinoId} onClick={() => setSelectedMovie(movie)}>
+            <div
+              key={movie.netzkinoId}
+              onClick={() => setSelectedMovie(movie)}
+              onKeyUp={() => setSelectedMovie(movie)}
+            >
               <SliderCard movie={movie} />
             </div>
           ))}
