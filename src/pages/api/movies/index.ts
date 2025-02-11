@@ -11,6 +11,9 @@ export default async function moviesHandler(
 
   switch (req.method) {
     case "GET":
+      if (req.query.slug !== undefined) {
+        return getMovieBySlug(req, res);
+      }
       return req.query.query ? getMovieByQuery(req, res) : getAllMovies(res);
     case "POST":
       return Array.isArray(req.body)
@@ -20,6 +23,22 @@ export default async function moviesHandler(
       return res.status(405).json({ status: "Method Not Allowed" });
   }
 }
+
+const getMovieBySlug = async (req: NextApiRequest, res: NextApiResponse) => {
+  try {
+    if (!req.query.slug) {
+      return res.status(400).json({ error: "Slug is required" });
+    }
+
+    const movie = await Movie.find({ slug: req.query.slug });
+
+    return movie.length
+      ? res.status(200).json(movie)
+      : res.status(404).json({ status: "Not Found" });
+  } catch (error) {
+    return handleApiError(res, "Error fetching movie by slug", error);
+  }
+};
 
 const getAllMovies = async (res: NextApiResponse) => {
   try {
@@ -53,8 +72,12 @@ const postMovie = async (req: NextApiRequest, res: NextApiResponse) => {
     return res
       .status(201)
       .json({ success: true, status: "Movie created", data: newMovie });
-  } catch (error) {
-    return handleApiError(res, "Error creating movie", error, 400);
+  } catch (error: any) {
+    const errorMessage = error.message.includes("Movie validation failed")
+      ? "Missing required fields"
+      : "Error creating movie";
+
+    return res.status(400).json({ error: errorMessage });
   }
 };
 
@@ -64,7 +87,11 @@ const postMovies = async (req: NextApiRequest, res: NextApiResponse) => {
     return res
       .status(201)
       .json({ success: true, status: "Movies created", data: newMovies });
-  } catch (error) {
-    return handleApiError(res, "Error creating movies", error, 400);
+  } catch (error: any) {
+    const errorMessage = error.message.includes("Movie validation failed")
+      ? "Missing required fields"
+      : "Error creating movies";
+
+    return res.status(400).json({ error: errorMessage });
   }
 };
