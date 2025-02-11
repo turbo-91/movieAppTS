@@ -8,8 +8,8 @@ export default function Header() {
   return (
     <div>
       <h1>MovieApp</h1>
-      <p onClick={() => setMenu((prevMenu) => !prevMenu)}>Menu</p>
-      {menu && <NavBar menu={menu} setMenu={setMenu} />}
+      <h1 onClick={() => setMenu((prevMenu) => !prevMenu)}>Menu</h1>
+      {menu && <NavBar />}
     </div>
   );
 }
