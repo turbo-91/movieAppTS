@@ -1,18 +1,7 @@
-import { IMovie } from "@/db/models/Movie";
+import { Movie } from "@/db/models/Movie";
 
 export interface SliderCardProps {
-  movie: IMovie;
-  // todaysWorkout: Workout;
-  // setTodaysWorkout: (workout: Workout) => void;
-  // formWorkout: Workout;
-  // setFormWorkout: (workout: Workout) => void;
-  // details: boolean;
-  // setDetails: (details: boolean) => void;
-  // toggleDetails: () => void;
-  // deleteWorkout: (deletedWorkout: Workout) => void;
-  // updateWorkout: (updatedWorkout: Workout) => void;
-  // setIsEditing: (isEditing: boolean) => void;
-  // isEditing: boolean;
+  movie: Movie;
 }
 
 export default function SliderCard(props: Readonly<SliderCardProps>) {
