@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-export interface IMovie extends Document {
+export interface Movie extends Document {
   netzkinoId: number;
   slug: string;
   title: string;
@@ -16,7 +16,7 @@ export interface IMovie extends Document {
 }
 
 // Define Schema with TypeScript
-const movieSchema = new Schema<IMovie>({
+const movieSchema = new Schema<Movie>({
   netzkinoId: { type: Number, required: true },
   slug: { type: String, required: true },
   title: { type: String, required: true },
