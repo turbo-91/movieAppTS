@@ -1,12 +1,12 @@
 import dbConnect from "../db/mongodb";
 import axios from "axios";
 import Movie from "../db/models/Movie";
-import { IMovie } from "../db/models/Movie";
-import { idToImg } from "../lib/iDtoImg";
+import idToImg from "@/lib/idToImg";
 import Query from "../db/models/Query";
 
-export async function fetchMoviesOfTheDay(names: string[]) {
+export async function getMoviesOfTheDay(names: string[]) {
   await dbConnect();
+  console.log("Fetching daily movies...");
 
   const query = names[Math.floor(Math.random() * names.length)];
   const usedQueries = await getAllQueriesFromDB();
@@ -16,21 +16,17 @@ export async function fetchMoviesOfTheDay(names: string[]) {
   const netzkinoURL = `https://api.netzkino.de.simplecache.net/capi-2.0a/search`;
 
   // Check if today's movies already exist in the database
+  console.log("Today's date: " + today);
+  console.log("Checking if movies are already stored for today...");
+
   const todaysMovies = await Movie.find({ dateFetched: today });
   if (todaysMovies.length > 0) {
     console.log("Returning movies already fetched for today");
-    return todaysMovies.slice(0, 5); // Return only the top 5
-  }
-
-  // query has already been used: movies in database
-  console.log("query before querycheck", query);
-
-  if (usedQueries.some((q) => q.query.includes(query))) {
-    const movies = await getMoviesByQuery(query);
-    return movies.slice(0, 5);
+    return todaysMovies.slice(0, 3); // Return only the top 3
   }
 
   // query has not been used yet: fetch movies from APIs
+  console.log("Fetching movies from external API using query: ", query);
 
   try {
     const response = await axios.get(
@@ -41,7 +37,9 @@ export async function fetchMoviesOfTheDay(names: string[]) {
       throw new Error("Invalid API response");
     }
 
-    const movies: IMovie[] = response.data.posts.map((movie: any) => {
+    console.log("response from netzkino", response.data);
+
+    const movies: (typeof Movie)[] = response.data.posts.map((movie: any) => {
       const imdbLink = movie.custom_fields?.["IMDb-Link"]?.[0];
       console.log("imdbLink in movie", imdbLink);
       const imgImdb = imdbLink ? idToImg(imdbLink) : null;
@@ -51,8 +49,10 @@ export async function fetchMoviesOfTheDay(names: string[]) {
         netzkinoId: movie.id,
         slug: movie.slug,
         title: movie.title,
-        year: movie.custom_fields?.Jahr,
-        overview: movie.content,
+        year: movie.custom_fields?.Jahr || ["n/a"],
+        regisseur: movie.custom_fields?.Regisseur || ["n/a"],
+        stars: movie.custom_fields?.Stars || ["n/a"],
+        overview: movie.content || "n/a",
         imgNetzkino:
           movie.custom_fields?.featured_img_all?.[0] || movie.thumbnail, // need other fallback
         imgNetzkinoSmall:
@@ -67,7 +67,7 @@ export async function fetchMoviesOfTheDay(names: string[]) {
 
     postMovies(movies);
     postQuery(query);
-    return movies.slice(0, 5);
+    return movies.slice(0, 3);
   } catch (error) {
     console.error(
       `Error fetching movies for query "${query}" from Netzkino API:`,
@@ -103,7 +103,7 @@ export async function getMoviesByQuery(query: string) {
   }
 }
 
-export async function postMovies(movies: IMovie[]) {
+export async function postMovies(movies: (typeof Movie)[]) {
   await dbConnect();
 
   if (!Array.isArray(movies) || movies.length === 0) {
