@@ -1,7 +1,7 @@
-import { IMovie } from "@/db/models/Movie";
+import { Movie } from "@/db/models/Movie";
 
 interface MovieDetailProps {
-  movie: IMovie;
+  movie: Movie;
   onBack: () => void;
 }
 
