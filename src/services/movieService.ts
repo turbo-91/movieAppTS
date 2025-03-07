@@ -68,7 +68,7 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
             movie.custom_fields?.featured_img_all?.[0] || movie.thumbnail, // need other fallback
           imgNetzkinoSmall:
             movie.custom_fields?.featured_img_all_small?.[0] || movie.thumbnail, // need other fallback
-          imgImdb: imgImdb,
+          imgImdb: imgImdb || "n/a",
           queries: query,
           dateFetched: today,
         };
