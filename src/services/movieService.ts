@@ -4,12 +4,12 @@ import Movie from "../db/models/Movie";
 import idToImg from "@/lib/idToImg";
 import Query from "../db/models/Query";
 
-export async function getMoviesOfTheDay(names: string[]) {
+// imgImdb ist nur der link, da fehlt der backdrop path DUH
+
+export async function getMoviesOfTheDay(randomQueries: string[]) {
   await dbConnect();
   console.log("Fetching daily movies...");
 
-  const query = names[Math.floor(Math.random() * names.length)];
-  const usedQueries = await getAllQueriesFromDB();
   const netzkinoKey = process.env.NEXT_PUBLIC_NETZKINO_KEY;
   const today = new Date().toLocaleDateString();
 
@@ -22,63 +22,84 @@ export async function getMoviesOfTheDay(names: string[]) {
   const todaysMovies = await Movie.find({ dateFetched: today });
   if (todaysMovies.length > 0) {
     console.log("Returning movies already fetched for today");
-    return todaysMovies.slice(0, 3); // Return only the top 3
+    return todaysMovies.slice(0, 5); // Return only the top 5
   }
 
-  // query has not been used yet: fetch movies from APIs
-  console.log("Fetching movies from external API using query: ", query);
+  // movies have not been fetched today: fetch movies from APIs
+  const collectedMovies: (typeof Movie)[] = [];
+  const maxRetries = 10;
+  for (
+    let retryCount = 0;
+    collectedMovies.length < 5 && retryCount < maxRetries;
+    retryCount++
+  ) {
+    const query =
+      randomQueries[Math.floor(Math.random() * randomQueries.length)];
+    console.log("Fetching movies from external API using query: ", query);
+    try {
+      const response = await axios.get(
+        `${netzkinoURL}?q=${query}&d=${netzkinoKey}`
+      );
 
-  try {
-    const response = await axios.get(
-      `${netzkinoURL}?q=${query}&d=${netzkinoKey}`
-    );
+      if (!response.data || !Array.isArray(response.data.posts)) {
+        throw new Error("Invalid API response");
+      }
 
-    if (!response.data || !Array.isArray(response.data.posts)) {
-      throw new Error("Invalid API response");
+      console.log("count total", response.data.count_total);
+      if (response.data.count_total > 0) {
+        postQuery(query);
+      }
+
+      // console.log("response from netzkino", response.data);
+
+      const movies: (typeof Movie)[] = response.data.posts.map((movie: any) => {
+        const imdbLink = movie.custom_fields?.["IMDb-Link"]?.[0];
+        // console.log("imdbLink in movie", imdbLink);
+        const imgImdb = imdbLink ? idToImg(imdbLink) : null;
+        // console.log("imdgImdb in movie after extraction", imgImdb);
+
+        return {
+          netzkinoId: movie.id,
+          slug: movie.slug,
+          title: movie.title,
+          year: movie.custom_fields?.Jahr || ["n/a"],
+          regisseur: movie.custom_fields?.Regisseur || ["n/a"],
+          stars: movie.custom_fields?.Stars || ["n/a"],
+          overview: movie.content || "n/a",
+          imgNetzkino:
+            movie.custom_fields?.featured_img_all?.[0] || movie.thumbnail, // need other fallback
+          imgNetzkinoSmall:
+            movie.custom_fields?.featured_img_all_small?.[0] || movie.thumbnail, // need other fallback
+          imgImdb: imgImdb || "n/a",
+          queries: query,
+          dateFetched: today,
+        };
+      });
+
+      // console.log("movies from current retry", movies);
+
+      // Accumulate movies from this API call
+      collectedMovies.push(...movies);
+    } catch (error) {
+      console.error(
+        `Error fetching movies for query "${query}" from Netzkino API:`,
+        error
+      );
     }
+  }
 
-    console.log("response from netzkino", response.data);
-
-    const movies: (typeof Movie)[] = response.data.posts.map((movie: any) => {
-      const imdbLink = movie.custom_fields?.["IMDb-Link"]?.[0];
-      console.log("imdbLink in movie", imdbLink);
-      const imgImdb = imdbLink ? idToImg(imdbLink) : null;
-      console.log("imdgImdb in movie after extraction", imgImdb);
-
-      return {
-        netzkinoId: movie.id,
-        slug: movie.slug,
-        title: movie.title,
-        year: movie.custom_fields?.Jahr || ["n/a"],
-        regisseur: movie.custom_fields?.Regisseur || ["n/a"],
-        stars: movie.custom_fields?.Stars || ["n/a"],
-        overview: movie.content || "n/a",
-        imgNetzkino:
-          movie.custom_fields?.featured_img_all?.[0] || movie.thumbnail, // need other fallback
-        imgNetzkinoSmall:
-          movie.custom_fields?.featured_img_all_small?.[0] || movie.thumbnail, // need other fallback
-        imgImdb: imgImdb,
-        queries: query,
-        dateFetched: today,
-      };
-    });
-
-    console.log("movies vor return", movies);
-
-    postMovies(movies);
-    postQuery(query);
-    return movies.slice(0, 3);
-  } catch (error) {
-    console.error(
-      `Error fetching movies for query "${query}" from Netzkino API:`,
-      error
-    );
+  if (collectedMovies.length < 5) {
+    // Not enough movies collected, return an error
     return {
       success: false,
-      error:
-        "We encountered an error retrieving movies. Please try again later.",
+      error: "Not enough movies could be fetched.",
     };
   }
+
+  // Save fetched movies to the database
+  postMovies(collectedMovies);
+
+  return collectedMovies.slice(0, 5);
 }
 
 export async function getAllMoviesFromDB() {

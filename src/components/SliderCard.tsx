@@ -11,7 +11,7 @@ export default function SliderCard(props: Readonly<SliderCardProps>) {
     <>
       <h2>{movie.title}</h2>
       <p>{movie.year}</p>
-      <img src={movie.imgImdb} alt={movie.title} width="200" />
+      <img src={movie.imgNetzkinoSmall} alt={movie.title} width="200" />
     </>
   );
 }
