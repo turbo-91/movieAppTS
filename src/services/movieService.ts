@@ -102,6 +102,31 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
   return collectedMovies.slice(0, 5);
 }
 
+export async function postMovies(movies: (typeof Movie)[]) {
+  await dbConnect();
+
+  if (!Array.isArray(movies) || movies.length === 0) {
+    throw new Error("Invalid input: movies must be a non-empty array");
+  }
+
+  try {
+    const newMovies = await Movie.insertMany(movies);
+    addImgImdb(movies);
+    return {
+      success: true,
+      status: "Movies successfully added",
+      data: newMovies,
+    };
+  } catch (error) {
+    console.error("Error posting movies:", error);
+    throw new Error("Error inserting movies into the database");
+  }
+}
+
+export async function addImgImdb(movies: (typeof Movie)[]) {
+  movies.map((movie: typeof Movie) => console.log(movie));
+}
+
 export async function getAllMoviesFromDB() {
   await dbConnect();
   try {
@@ -121,26 +146,6 @@ export async function getMoviesByQuery(query: string) {
   } catch (error) {
     console.error(`Error fetching movies for query "${query}" from DB:`, error);
     throw new Error("Unable to fetch movies for the specified query");
-  }
-}
-
-export async function postMovies(movies: (typeof Movie)[]) {
-  await dbConnect();
-
-  if (!Array.isArray(movies) || movies.length === 0) {
-    throw new Error("Invalid input: movies must be a non-empty array");
-  }
-
-  try {
-    const newMovies = await Movie.insertMany(movies);
-    return {
-      success: true,
-      status: "Movies successfully added",
-      data: newMovies,
-    };
-  } catch (error) {
-    console.error("Error posting movies:", error);
-    throw new Error("Error inserting movies into the database");
   }
 }
 
