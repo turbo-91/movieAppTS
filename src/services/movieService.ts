@@ -4,7 +4,7 @@ import Movie from "../db/models/Movie";
 import idToImg from "@/lib/idToImg";
 import Query from "../db/models/Query";
 
-// imgImdb ist nur der link, da fehlt der backdrop path DUH
+// next step: imgImdb ist nur der link, da fehlt der backdrop path DUH
 
 export async function getMoviesOfTheDay(randomQueries: string[]) {
   await dbConnect();
