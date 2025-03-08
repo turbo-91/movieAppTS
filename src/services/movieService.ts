@@ -42,7 +42,7 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
       );
 
       if (!response.data || !Array.isArray(response.data.posts)) {
-        throw new Error("Invalid API response");
+        throw new Error("Invalid Netzkino API response");
       }
 
       console.log("count total", response.data.count_total);
@@ -124,14 +124,28 @@ export async function postMovies(movies: Movie[]) {
   }
 }
 
+//////////////////////// Next step: extract backdrop_path, paste it into img url and then change the imgImdb field with that link via PUT request
+
 export async function addImgImdb(movies: Movie[]) {
-  const moviesData = movies.map((movie) => movie.toObject()); // Convert Mongoos Model instances to plain objects = typescript stuff
-  moviesData.map((movie) => {
+  const moviesData = movies.map((movie) => movie.toObject()); // Convert Mongoose Model instances to plain objects
+
+  for (const movie of moviesData) {
+    // ✅ Use for...of loop
     const imdbLink = movie.imgImdb ?? "";
     const parts = imdbLink.split("/");
     const imdbId = parts.find((part: string) => part.startsWith("tt"));
-    console.log("addImgImdb triggered for", movie);
-  });
+
+    if (!imdbId) continue; // ✅ Skip if no IMDb ID is found -----> needs fallback image
+
+    try {
+      const imdbResponse = await axios.get(
+        `https://api.themoviedb.org/3/find/${imdbId}?api_key=78247849b9888da02ffb1655caa3a9b9&language=de&external_source=imdb_id`
+      );
+      console.log("IMDb response for", imdbId, imdbResponse.data);
+    } catch (error) {
+      console.error("Error fetching imdbImg:", error);
+    }
+  }
 }
 
 export async function getAllMoviesFromDB() {
