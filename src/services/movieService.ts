@@ -102,7 +102,7 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
   return collectedMovies.slice(0, 5);
 }
 
-export async function postMovies(movies: (typeof Movie)[]) {
+export async function postMovies(movies: Movie[]) {
   await dbConnect();
 
   if (!Array.isArray(movies) || movies.length === 0) {
@@ -111,7 +111,8 @@ export async function postMovies(movies: (typeof Movie)[]) {
 
   try {
     const newMovies = await Movie.insertMany(movies);
-    addImgImdb(movies);
+    const moviesData = newMovies.map((movie) => movie.toObject()); // Convert Mongoos Model instances to plain objects = typescript stuff
+    addImgImdb(moviesData);
     return {
       success: true,
       status: "Movies successfully added",
@@ -123,8 +124,14 @@ export async function postMovies(movies: (typeof Movie)[]) {
   }
 }
 
-export async function addImgImdb(movies: (typeof Movie)[]) {
-  movies.map((movie: typeof Movie) => console.log(movie));
+export async function addImgImdb(movies: Movie[]) {
+  const moviesData = movies.map((movie) => movie.toObject()); // Convert Mongoos Model instances to plain objects = typescript stuff
+  moviesData.map((movie) => {
+    const imdbLink = movie.imgImdb ?? "";
+    const parts = imdbLink.split("/");
+    const imdbId = parts.find((part: string) => part.startsWith("tt"));
+    console.log("addImgImdb triggered for", movie);
+  });
 }
 
 export async function getAllMoviesFromDB() {
