@@ -4,7 +4,7 @@ import { getMoviesOfTheDay } from "@/services/movieService";
 
 // TORBEN DON'T FORGET 10 RETRIES!!!
 
-function addImgImdb() {
+async function addImgImdb() {
   console.log("tbd");
 }
 
