@@ -4,7 +4,7 @@ import Movie from "../db/models/Movie";
 import idToImg from "@/lib/idToImg";
 import Query from "../db/models/Query";
 
-// imgImdb ist nur der link, da fehlt der backdrop path DUH
+// next step: imgImdb ist nur der link, da fehlt der backdrop path DUH
 
 export async function getMoviesOfTheDay(randomQueries: string[]) {
   await dbConnect();
@@ -42,7 +42,7 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
       );
 
       if (!response.data || !Array.isArray(response.data.posts)) {
-        throw new Error("Invalid API response");
+        throw new Error("Invalid Netzkino API response");
       }
 
       console.log("count total", response.data.count_total);
@@ -102,6 +102,52 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
   return collectedMovies.slice(0, 5);
 }
 
+export async function postMovies(movies: Movie[]) {
+  await dbConnect();
+
+  if (!Array.isArray(movies) || movies.length === 0) {
+    throw new Error("Invalid input: movies must be a non-empty array");
+  }
+
+  try {
+    const newMovies = await Movie.insertMany(movies);
+    const moviesData = newMovies.map((movie) => movie.toObject()); // Convert Mongoos Model instances to plain objects = typescript stuff
+    addImgImdb(moviesData);
+    return {
+      success: true,
+      status: "Movies successfully added",
+      data: newMovies,
+    };
+  } catch (error) {
+    console.error("Error posting movies:", error);
+    throw new Error("Error inserting movies into the database");
+  }
+}
+
+//////////////////////// Next step: extract backdrop_path, paste it into img url and then change the imgImdb field with that link via PUT request
+
+export async function addImgImdb(movies: Movie[]) {
+  const moviesData = movies.map((movie) => movie.toObject()); // Convert Mongoose Model instances to plain objects
+
+  for (const movie of moviesData) {
+    // ✅ Use for...of loop
+    const imdbLink = movie.imgImdb ?? "";
+    const parts = imdbLink.split("/");
+    const imdbId = parts.find((part: string) => part.startsWith("tt"));
+
+    if (!imdbId) continue; // ✅ Skip if no IMDb ID is found -----> needs fallback image
+
+    try {
+      const imdbResponse = await axios.get(
+        `https://api.themoviedb.org/3/find/${imdbId}?api_key=78247849b9888da02ffb1655caa3a9b9&language=de&external_source=imdb_id`
+      );
+      console.log("IMDb response for", imdbId, imdbResponse.data);
+    } catch (error) {
+      console.error("Error fetching imdbImg:", error);
+    }
+  }
+}
+
 export async function getAllMoviesFromDB() {
   await dbConnect();
   try {
@@ -121,26 +167,6 @@ export async function getMoviesByQuery(query: string) {
   } catch (error) {
     console.error(`Error fetching movies for query "${query}" from DB:`, error);
     throw new Error("Unable to fetch movies for the specified query");
-  }
-}
-
-export async function postMovies(movies: (typeof Movie)[]) {
-  await dbConnect();
-
-  if (!Array.isArray(movies) || movies.length === 0) {
-    throw new Error("Invalid input: movies must be a non-empty array");
-  }
-
-  try {
-    const newMovies = await Movie.insertMany(movies);
-    return {
-      success: true,
-      status: "Movies successfully added",
-      data: newMovies,
-    };
-  } catch (error) {
-    console.error("Error posting movies:", error);
-    throw new Error("Error inserting movies into the database");
   }
 }
 
