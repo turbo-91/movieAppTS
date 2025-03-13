@@ -6,17 +6,16 @@ import Query from "../db/models/Query";
 import { IMovie } from "@/db/models/Movie";
 import { NetzkinoMovie } from "@/types/NetzkinoMovie";
 import movieThumbnail from "@/lib/img/movieThumbnail.png";
+import { backdropUrl } from "@/lib/constants/constants";
+import { netzkinoURL } from "@/lib/constants/constants";
+import { netzkinoKey } from "@/lib/constants/constants";
 
 // next step: imgImdb ist nur der link, da fehlt der backdrop path DUH
 
 export async function getMoviesOfTheDay(randomQueries: string[]) {
   await dbConnect();
   console.log("Fetching daily movies...");
-
-  const netzkinoKey = process.env.NEXT_PUBLIC_NETZKINO_KEY;
   const today = new Date().toLocaleDateString();
-
-  const netzkinoURL = `https://api.netzkino.de.simplecache.net/capi-2.0a/search`;
 
   // Check if today's movies already exist in the database
   console.log("Today's date: " + today);
@@ -103,7 +102,7 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
   }
 
   // Save fetched movies to the database
-  console.log("collectedMovies before post", collectedMovies);
+  // console.log("collectedMovies before post", collectedMovies);
   postMovies(collectedMovies);
 
   return collectedMovies.slice(0, 5);
@@ -131,26 +130,19 @@ export async function postMovies(movies: IMovie[]) {
   }
 }
 
-//////////////////////// Next step: extract backdrop_path, paste it into img url and then change the imgImdb field with that link via PUT request
-
 export async function addImgImdb(movies: IMovie[]) {
-  const moviesData = movies.map((movie) => movie.toObject()); // Convert Mongoose Model instances to plain objects
-
-  for (const movie of moviesData) {
-    // extract ImdbId
-    const imdbLink = movie.imgImdb ?? "";
-    const parts = imdbLink.split("/");
-    const imdbId = parts.find((part: string) => part.startsWith("tt"));
-
-    if (!imdbId) continue; // ✅ Skip if no IMDb ID is found -----> needs fallback image
-
+  //////////////////////// Stand bei feierabend: backdrop.path kann null sein -> fallbackimg oder poster?
+  ////// dann jeden movie mittels PUT request mit backdrop.path in imgImdb updaten
+  for (const movie of movies) {
+    const imdbId = movie.imgImdb;
     try {
-      const imdbResponse = await axios.get(
-        `https://api.themoviedb.org/3/find/${imdbId}?api_key=78247849b9888da02ffb1655caa3a9b9&language=de&external_source=imdb_id`
-      );
-      // console.log("IMDb response for", imdbId, imdbResponse.data);
+      const response = await axios.get(imdbId);
+      console.log("responses", response.data);
+      const backdrop = response.data.movie_results?.[0]?.backdrop_path;
+      const backdrop_path = `${backdropUrl}${backdrop}`;
     } catch (error) {
-      console.error("Error fetching imdbImg:", error);
+      console.error("Error fetching from imdb:", error);
+      throw new Error("Error updating imgImdb");
     }
   }
 }
