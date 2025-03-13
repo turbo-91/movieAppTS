@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-export interface Movie extends Document {
+export interface IMovie extends Document {
   netzkinoId: number;
   slug: string;
   title: string;

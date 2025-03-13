@@ -3,6 +3,8 @@ import axios from "axios";
 import Movie from "../db/models/Movie";
 import idToImg from "@/lib/idToImg";
 import Query from "../db/models/Query";
+import { IMovie } from "@/db/models/Movie";
+import { NetzkinoMovie } from "@/types/NetzkinoMovie";
 
 // next step: imgImdb ist nur der link, da fehlt der backdrop path DUH
 
@@ -26,7 +28,7 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
   }
 
   // movies have not been fetched today: fetch movies from APIs
-  const collectedMovies: (typeof Movie)[] = [];
+  const collectedMovies: IMovie[] = [];
   const maxRetries = 10;
   for (
     let retryCount = 0;
@@ -52,29 +54,32 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
 
       // console.log("response from netzkino", response.data);
 
-      const movies: (typeof Movie)[] = response.data.posts.map((movie: any) => {
-        const imdbLink = movie.custom_fields?.["IMDb-Link"]?.[0];
-        // console.log("imdbLink in movie", imdbLink);
-        const imgImdb = imdbLink ? idToImg(imdbLink) : null;
-        // console.log("imdgImdb in movie after extraction", imgImdb);
+      const movies: IMovie[] = response.data.posts.map(
+        (movie: NetzkinoMovie) => {
+          const imdbLink = movie.custom_fields?.["IMDb-Link"]?.[0];
+          // console.log("imdbLink in movie", imdbLink);
+          const imgImdb = imdbLink ? idToImg(imdbLink) : null;
+          // console.log("imdgImdb in movie after extraction", imgImdb);
 
-        return {
-          netzkinoId: movie.id,
-          slug: movie.slug,
-          title: movie.title,
-          year: movie.custom_fields?.Jahr || ["n/a"],
-          regisseur: movie.custom_fields?.Regisseur || ["n/a"],
-          stars: movie.custom_fields?.Stars || ["n/a"],
-          overview: movie.content || "n/a",
-          imgNetzkino:
-            movie.custom_fields?.featured_img_all?.[0] || movie.thumbnail, // need other fallback
-          imgNetzkinoSmall:
-            movie.custom_fields?.featured_img_all_small?.[0] || movie.thumbnail, // need other fallback
-          imgImdb: imgImdb || "n/a",
-          queries: query,
-          dateFetched: today,
-        };
-      });
+          return {
+            netzkinoId: movie.id,
+            slug: movie.slug,
+            title: movie.title,
+            year: movie.custom_fields?.Jahr || ["n/a"],
+            regisseur: movie.custom_fields?.Regisseur || ["n/a"],
+            stars: movie.custom_fields?.Stars || ["n/a"],
+            overview: movie.content || "n/a",
+            imgNetzkino:
+              movie.custom_fields?.featured_img_all?.[0] || movie.thumbnail, // need other fallback
+            imgNetzkinoSmall:
+              movie.custom_fields?.featured_img_all_small?.[0] ||
+              movie.thumbnail, // need other fallback
+            imgImdb: imgImdb || "n/a",
+            queries: query,
+            dateFetched: today,
+          };
+        }
+      );
 
       // console.log("movies from current retry", movies);
 
@@ -97,12 +102,13 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
   }
 
   // Save fetched movies to the database
+  console.log("collectedMovies before post", collectedMovies);
   postMovies(collectedMovies);
 
   return collectedMovies.slice(0, 5);
 }
 
-export async function postMovies(movies: Movie[]) {
+export async function postMovies(movies: IMovie[]) {
   await dbConnect();
 
   if (!Array.isArray(movies) || movies.length === 0) {
@@ -111,8 +117,8 @@ export async function postMovies(movies: Movie[]) {
 
   try {
     const newMovies = await Movie.insertMany(movies);
-    const moviesData = newMovies.map((movie) => movie.toObject()); // Convert Mongoos Model instances to plain objects = typescript stuff
-    addImgImdb(moviesData);
+    // const moviesData = newMovies.map((movie) => movie.toObject()); // Convert Mongoos Model instances to plain objects = typescript stuff
+    addImgImdb(newMovies);
     return {
       success: true,
       status: "Movies successfully added",
@@ -126,11 +132,11 @@ export async function postMovies(movies: Movie[]) {
 
 //////////////////////// Next step: extract backdrop_path, paste it into img url and then change the imgImdb field with that link via PUT request
 
-export async function addImgImdb(movies: Movie[]) {
+export async function addImgImdb(movies: IMovie[]) {
   const moviesData = movies.map((movie) => movie.toObject()); // Convert Mongoose Model instances to plain objects
 
   for (const movie of moviesData) {
-    // ✅ Use for...of loop
+    // extract ImdbId
     const imdbLink = movie.imgImdb ?? "";
     const parts = imdbLink.split("/");
     const imdbId = parts.find((part: string) => part.startsWith("tt"));
@@ -141,7 +147,7 @@ export async function addImgImdb(movies: Movie[]) {
       const imdbResponse = await axios.get(
         `https://api.themoviedb.org/3/find/${imdbId}?api_key=78247849b9888da02ffb1655caa3a9b9&language=de&external_source=imdb_id`
       );
-      console.log("IMDb response for", imdbId, imdbResponse.data);
+      // console.log("IMDb response for", imdbId, imdbResponse.data);
     } catch (error) {
       console.error("Error fetching imdbImg:", error);
     }
