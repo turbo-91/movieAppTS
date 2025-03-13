@@ -5,6 +5,7 @@ import idToImg from "@/lib/idToImg";
 import Query from "../db/models/Query";
 import { IMovie } from "@/db/models/Movie";
 import { NetzkinoMovie } from "@/types/NetzkinoMovie";
+import movieThumbnail from "@/lib/img/movieThumbnail.png";
 
 // next step: imgImdb ist nur der link, da fehlt der backdrop path DUH
 
@@ -60,6 +61,7 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
           // console.log("imdbLink in movie", imdbLink);
           const imgImdb = imdbLink ? idToImg(imdbLink) : null;
           // console.log("imdgImdb in movie after extraction", imgImdb);
+          const fallbackImg = movie.thumbnail || movieThumbnail;
 
           return {
             netzkinoId: movie.id,
@@ -70,10 +72,9 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
             stars: movie.custom_fields?.Stars || ["n/a"],
             overview: movie.content || "n/a",
             imgNetzkino:
-              movie.custom_fields?.featured_img_all?.[0] || movie.thumbnail, // need other fallback
+              movie.custom_fields?.featured_img_all?.[0] || fallbackImg,
             imgNetzkinoSmall:
-              movie.custom_fields?.featured_img_all_small?.[0] ||
-              movie.thumbnail, // need other fallback
+              movie.custom_fields?.featured_img_all_small?.[0] || fallbackImg,
             imgImdb: imgImdb || "n/a",
             queries: query,
             dateFetched: today,
