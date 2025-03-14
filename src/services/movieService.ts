@@ -52,17 +52,14 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
         postQuery(query);
       }
 
-      // console.log("response from netzkino", response.data);
-
       const movies: IMovie[] = response.data.posts.map(
         (movie: NetzkinoMovie) => {
           const imdbLink = movie.custom_fields?.["IMDb-Link"]?.[0];
-          // console.log("imdbLink in movie", imdbLink);
           const imgImdb = imdbLink ? idToImg(imdbLink) : null;
-          // console.log("imdgImdb in movie after extraction", imgImdb);
           const fallbackImg = movie.thumbnail || movieThumbnail;
 
           return {
+            _id: movie.id,
             netzkinoId: movie.id,
             slug: movie.slug,
             title: movie.title,
@@ -80,10 +77,6 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
           };
         }
       );
-
-      // console.log("movies from current retry", movies);
-
-      // Accumulate movies from this API call
       collectedMovies.push(...movies);
     } catch (error) {
       console.error(
@@ -101,8 +94,6 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
     };
   }
 
-  // Save fetched movies to the database
-  // console.log("collectedMovies before post", collectedMovies);
   postMovies(collectedMovies);
 
   return collectedMovies.slice(0, 5);
@@ -117,7 +108,6 @@ export async function postMovies(movies: IMovie[]) {
 
   try {
     const newMovies = await Movie.insertMany(movies);
-    // const moviesData = newMovies.map((movie) => movie.toObject()); // Convert Mongoos Model instances to plain objects = typescript stuff
     addImgImdb(newMovies);
     return {
       success: true,
@@ -131,18 +121,26 @@ export async function postMovies(movies: IMovie[]) {
 }
 
 export async function addImgImdb(movies: IMovie[]) {
-  //////////////////////// Stand bei feierabend: backdrop.path kann null sein -> fallbackimg oder poster?
-  ////// dann jeden movie mittels PUT request mit backdrop.path in imgImdb updaten
   for (const movie of movies) {
+    console.log(`Movie ${movie.netzkinoId} before update:`, movie);
     const imdbId = movie.imgImdb;
     try {
       const response = await axios.get(imdbId);
       console.log("responses", response.data);
       const backdrop = response.data.movie_results?.[0]?.backdrop_path;
-      const backdrop_path = `${backdropUrl}${backdrop}`;
+      const backdrop_path = backdrop
+        ? `${backdropUrl}${backdrop}`
+        : movieThumbnail.src;
+
+      const updatedMovie = await Movie.findByIdAndUpdate(
+        movie._id,
+        { imgImdb: backdrop_path },
+        { new: true }
+      );
+
+      console.log(`Updated movie ${movie.netzkinoId}:`, updatedMovie);
     } catch (error) {
-      console.error("Error fetching from imdb:", error);
-      throw new Error("Error updating imgImdb");
+      console.error(`Error updating movie ${movie.netzkinoId}:`, error);
     }
   }
 }
