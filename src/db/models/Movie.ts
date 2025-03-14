@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-export interface Movie extends Document {
+export interface IMovie extends Document {
+  _id: number;
   netzkinoId: number;
   slug: string;
   title: string;
@@ -15,8 +16,9 @@ export interface Movie extends Document {
   dateFetched?: string[];
 }
 
-const movieSchema = new Schema<Movie>({
-  netzkinoId: { type: Number, required: true },
+const movieSchema = new Schema<IMovie>({
+  _id: { type: Number, required: true },
+  netzkinoId: { type: Number, required: true, unique: true },
   slug: { type: String, required: true },
   title: { type: String, required: true },
   year: { type: [String], required: true },
