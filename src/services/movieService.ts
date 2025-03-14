@@ -10,23 +10,14 @@ import { backdropUrl } from "@/lib/constants/constants";
 import { netzkinoURL } from "@/lib/constants/constants";
 import { netzkinoKey } from "@/lib/constants/constants";
 
-// next step: imgImdb ist nur der link, da fehlt der backdrop path DUH
-
 export async function getMoviesOfTheDay(randomQueries: string[]) {
   await dbConnect();
-  console.log("Fetching daily movies...");
-  const today = new Date().toLocaleDateString();
-
   // Check if today's movies already exist in the database
-  console.log("Today's date: " + today);
-  console.log("Checking if movies are already stored for today...");
-
+  const today = new Date().toLocaleDateString();
   const todaysMovies = await Movie.find({ dateFetched: today });
   if (todaysMovies.length > 0) {
-    console.log("Returning movies already fetched for today");
     return todaysMovies.slice(0, 5); // Return only the top 5
   }
-
   // movies have not been fetched today: fetch movies from APIs
   const collectedMovies: IMovie[] = [];
   const maxRetries = 10;
@@ -37,7 +28,6 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
   ) {
     const query =
       randomQueries[Math.floor(Math.random() * randomQueries.length)];
-    console.log("Fetching movies from external API using query: ", query);
     try {
       const response = await axios.get(
         `${netzkinoURL}?q=${query}&d=${netzkinoKey}`
@@ -46,18 +36,14 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
       if (!response.data || !Array.isArray(response.data.posts)) {
         throw new Error("Invalid Netzkino API response");
       }
-
-      console.log("count total", response.data.count_total);
       if (response.data.count_total > 0) {
         postQuery(query);
       }
-
       const movies: IMovie[] = response.data.posts.map(
         (movie: NetzkinoMovie) => {
           const imdbLink = movie.custom_fields?.["IMDb-Link"]?.[0];
           const imgImdb = imdbLink ? idToImg(imdbLink) : null;
           const fallbackImg = movie.thumbnail || movieThumbnail;
-
           return {
             _id: movie.id,
             netzkinoId: movie.id,
@@ -122,23 +108,18 @@ export async function postMovies(movies: IMovie[]) {
 
 export async function addImgImdb(movies: IMovie[]) {
   for (const movie of movies) {
-    console.log(`Movie ${movie.netzkinoId} before update:`, movie);
     const imdbId = movie.imgImdb;
     try {
       const response = await axios.get(imdbId);
-      console.log("responses", response.data);
       const backdrop = response.data.movie_results?.[0]?.backdrop_path;
       const backdrop_path = backdrop
         ? `${backdropUrl}${backdrop}`
         : movieThumbnail.src;
-
       const updatedMovie = await Movie.findByIdAndUpdate(
         movie._id,
         { imgImdb: backdrop_path },
         { new: true }
       );
-
-      console.log(`Updated movie ${movie.netzkinoId}:`, updatedMovie);
     } catch (error) {
       console.error(`Error updating movie ${movie.netzkinoId}:`, error);
     }
