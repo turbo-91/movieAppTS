@@ -2,13 +2,12 @@ import { useState } from "react";
 import { IMovie } from "@/db/models/Movie";
 import movieThumbnail from "/public/movieThumbnail.png";
 import Image from "next/image";
-import styled from "styled-components";
 
-export interface SliderCardProps {
+export interface MovieCardProps {
   movie: IMovie;
 }
 
-export default function SliderCard(props: Readonly<SliderCardProps>) {
+export default function SliderCard(props: Readonly<MovieCardProps>) {
   const { movie } = props;
   const [imageSrc, setImageSrc] = useState(
     movie.imgNetzkino || movieThumbnail.src
