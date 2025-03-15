@@ -37,7 +37,7 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
         throw new Error("Invalid Netzkino API response");
       }
       if (response.data.count_total > 0) {
-        postQuery(query);
+        postQuery(query); // post query in db to avoid future API fetching - part of pseudo caching
       }
       const movies: IMovie[] = response.data.posts.map(
         (movie: NetzkinoMovie) => {
@@ -80,9 +80,13 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
     };
   }
 
-  postMovies(collectedMovies);
+  postMovies(collectedMovies); // save fetched movies to db
 
   return collectedMovies.slice(0, 5);
+}
+
+export async function getSearchMovies(query: string) {
+  console.log("search query: ", query);
 }
 
 export async function postMovies(movies: IMovie[]) {
@@ -137,7 +141,7 @@ export async function getAllMoviesFromDB() {
   }
 }
 
-export async function getMoviesByQuery(query: string) {
+export async function getMoviesByQueryFromDB(query: string) {
   await dbConnect();
   try {
     const movies = await Movie.find({ queries: query });

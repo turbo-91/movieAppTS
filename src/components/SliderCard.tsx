@@ -2,6 +2,7 @@ import { useState } from "react";
 import { IMovie } from "@/db/models/Movie";
 import movieThumbnail from "/public/movieThumbnail.png";
 import Image from "next/image";
+import styled from "styled-components";
 
 export interface SliderCardProps {
   movie: IMovie;
