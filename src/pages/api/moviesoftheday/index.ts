@@ -4,7 +4,7 @@ import {
   getMoviesOfTheDay,
   postMovies,
   addImgImdb,
-} from "@/services/movieService";
+} from "@/services/movieServiceOld";
 import { IMovie } from "@/db/models/Movie";
 
 // Connect to DB before handling requests
