@@ -6,6 +6,9 @@ import { fetchMoviesFromNetzkino } from "./netzkinoFetcher";
 import { postMovies } from "./movieDB";
 import { addImgImdb } from "./movieServiceOld";
 
+// Fetches movies of the day from Netzkino API, caches them in the database,
+// and fetches additional image from ImdB.
+
 export async function getMoviesOfTheDay(randomQueries: string[]) {
   await dbConnect();
 
