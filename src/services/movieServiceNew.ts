@@ -49,5 +49,10 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
 }
 
 export async function getSearchMovies(query: string) {
-  console.log("search query: ", query);
+  const movies: IMovie[] = await fetchMoviesFromNetzkino(query);
+  if (!movies.length) return;
+
+  await postQuery(query);
+  await postMovies(movies);
+  addImgImdb(movies);
 }
