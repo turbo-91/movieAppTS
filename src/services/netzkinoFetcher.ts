@@ -1,7 +1,7 @@
 import axios from "axios";
 import { netzkinoURL, netzkinoKey } from "@/lib/constants/constants";
 import { IMovie } from "@/db/models/Movie";
-import { postQuery } from "./movieServiceOld";
+import { postQuery } from "./queryService";
 import movieThumbnail from "@/lib/img/movieThumbnail.png";
 import { NetzkinoMovie } from "@/types/NetzkinoMovie";
 import idToImg from "@/lib/idToImg";

@@ -1,13 +1,10 @@
 import dbConnect from "@/db/mongodb";
 import { randomQueries } from "@/lib/constants/constants";
-import {
-  getMoviesOfTheDay,
-  postMovies,
-  addImgImdb,
-} from "@/services/movieServiceOld";
+import { getMoviesOfTheDay } from "@/services/movieService";
+import { addImgImdb } from "@/services/imdbService";
+import { postMovies } from "@/services/movieDB";
 import { IMovie } from "@/db/models/Movie";
 
-// Connect to DB before handling requests
 export default async function moviesDayHandler(req, res) {
   await dbConnect();
 
