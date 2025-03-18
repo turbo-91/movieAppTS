@@ -1,12 +1,24 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import useSWR from "swr";
 import MovieDetail from "@/components/MovieDetail";
 import { IMovie } from "@/db/models/Movie";
 
+const fetcher = async (url: string) => {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Error fetching movies");
+  return response.json();
+};
+
 function SearchPage() {
   const [query, setQuery] = useState("");
-  const [movies, setMovies] = useState<IMovie[]>([]);
   const [error, setError] = useState("");
   const [selectedMovie, setSelectedMovie] = useState<IMovie | null>(null);
+
+  const { data: movies = [], error: fetchError } = useSWR(
+    query ? `/api/movies?query=${query}` : null,
+    fetcher,
+    { dedupingInterval: 700 }
+  );
 
   // Handles input while allowing only lowercase letters
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -19,26 +31,6 @@ function SearchPage() {
     }
   };
 
-  // Debounced search request & fetching
-  useEffect(() => {
-    const searchUrl = `searchUrl`;
-
-    const fetchMovies = async () => {
-      if (!query) return setMovies([]); // Clears movies list if input is empty
-      try {
-        const response = await fetch(searchUrl);
-        if (!response.ok) throw new Error();
-        setMovies(await response.json());
-        setError("");
-      } catch {
-        setError("Error fetching movies. Please try again.");
-        setMovies([]);
-      }
-    };
-    const timeout = setTimeout(fetchMovies, 700);
-    return () => clearTimeout(timeout);
-  }, [query]);
-
   return (
     <div>
       <input
@@ -50,6 +42,9 @@ function SearchPage() {
 
       {/* DISPLAY SEARCH ERROR MESSAGE*/}
       {error && <p className="error">{error}</p>}
+      {fetchError && (
+        <p className="error">Error fetching movies. Please try again.</p>
+      )}
 
       {/* DISPLAY NO MOVIES FOUND OR ONE MOVIE SEARCH RESULTS OR ONE MOVIE IN DETAIL*/}
       {movies.length === 0 ? (
