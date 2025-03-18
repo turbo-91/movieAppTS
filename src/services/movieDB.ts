@@ -43,3 +43,16 @@ export async function getMoviesByQuery(query: string) {
     throw new Error("Unable to fetch movies");
   }
 }
+
+export async function getMovieById(movieId: string) {
+  await dbConnect();
+  if (!movieId || typeof movieId !== "string")
+    throw new Error("Invalid input: movieId must be a non-empty string");
+  try {
+    const movie = await Movie.findById(movieId);
+    return movie || null;
+  } catch (error) {
+    console.error("Error fetching movie by ID:", error);
+    throw new Error("Unable to fetch movie by ID");
+  }
+}
