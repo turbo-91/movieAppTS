@@ -28,13 +28,30 @@ export async function getAllMoviesFromDB() {
   }
 }
 
-export async function getMoviesByQueryFromDB(query: string) {
+export async function getMoviesByQuery(query: string) {
   await dbConnect();
+
+  if (!query || typeof query !== "string") {
+    throw new Error("Invalid input: query must be a non-empty string");
+  }
+
   try {
     const movies = await Movie.find({ queries: query });
     return movies;
   } catch (error) {
-    console.error(`Error fetching movies for query "${query}" from DB:`, error);
-    throw new Error("Unable to fetch movies for the specified query");
+    console.error("Error fetching movies by query:", error);
+    throw new Error("Unable to fetch movies");
+  }
+}
+
+export async function getMoviesById(movieIds) {
+  await dbConnect();
+  if (!Array.isArray(movieIds) || movieIds.length === 0)
+    throw new Error("Invalid input: movieIds must be a non-empty array");
+  try {
+    return await Movie.find({ _id: { $in: movieIds } });
+  } catch (error) {
+    console.error("Error fetching movies by IDs:", error);
+    throw new Error("Unable to fetch movies by IDs");
   }
 }

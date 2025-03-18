@@ -33,22 +33,6 @@ export async function postQuery(query: string) {
   }
 }
 
-export async function getMoviesByQuery(query: string) {
-  await dbConnect();
-
-  if (!query || typeof query !== "string") {
-    throw new Error("Invalid input: query must be a non-empty string");
-  }
-
-  try {
-    const movies = await Movie.find({ queries: query });
-    return movies;
-  } catch (error) {
-    console.error("Error fetching movies by query:", error);
-    throw new Error("Unable to fetch movies");
-  }
-}
-
 export async function isQueryInDb(query: string) {
   await dbConnect();
 
