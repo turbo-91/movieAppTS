@@ -1,6 +1,6 @@
 import axios from "axios";
 import Movie from "@/db/models/Movie";
-import movieThumbnail from "@/lib/img/movieThumbnail.png";
+import movieThumbnail from "/public/movieThumbnail.png";
 import { backdropUrl } from "@/lib/constants/constants";
 import { IMovie } from "@/db/models/Movie";
 

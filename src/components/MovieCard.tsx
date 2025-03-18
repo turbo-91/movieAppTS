@@ -7,7 +7,11 @@ export interface MovieCardProps {
   movie: IMovie;
 }
 
-export default function SliderCard(props: Readonly<MovieCardProps>) {
+const customLoader = ({ src }: { src: string }) => {
+  return src; // ✅ Allows any external image URL
+};
+
+export default function MovieCard(props: Readonly<MovieCardProps>) {
   const { movie } = props;
   const [imageSrc, setImageSrc] = useState(
     movie.imgNetzkino || movieThumbnail.src
@@ -18,9 +22,11 @@ export default function SliderCard(props: Readonly<MovieCardProps>) {
       <h2>{movie.title}</h2>
       <p>{movie.year}</p>
       <Image
+        loader={customLoader}
         src={imageSrc}
         alt={movie.title}
-        fill
+        width={600}
+        height={200}
         onError={() => setImageSrc(movieThumbnail.src)}
       />
     </>
