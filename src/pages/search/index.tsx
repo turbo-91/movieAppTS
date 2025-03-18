@@ -2,12 +2,7 @@ import React, { useState } from "react";
 import useSWR from "swr";
 import MovieDetail from "@/components/MovieDetail";
 import { IMovie } from "@/db/models/Movie";
-
-const fetcher = async (url: string) => {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("Error fetching movies");
-  return response.json();
-};
+import { fetcher } from "@/lib/fetcher";
 
 function SearchPage() {
   const [query, setQuery] = useState("");
