@@ -43,15 +43,3 @@ export async function getMoviesByQuery(query: string) {
     throw new Error("Unable to fetch movies");
   }
 }
-
-export async function getMoviesById(movieIds) {
-  await dbConnect();
-  if (!Array.isArray(movieIds) || movieIds.length === 0)
-    throw new Error("Invalid input: movieIds must be a non-empty array");
-  try {
-    return await Movie.find({ _id: { $in: movieIds } });
-  } catch (error) {
-    console.error("Error fetching movies by IDs:", error);
-    throw new Error("Unable to fetch movies by IDs");
-  }
-}
