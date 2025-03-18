@@ -12,7 +12,7 @@ export async function addImgImdb(movies: IMovie[]) {
       const backdrop = response.data.movie_results?.[0]?.backdrop_path;
       const backdrop_path = backdrop
         ? `${backdropUrl}${backdrop}`
-        : movieThumbnail.src;
+        : movie.imgNetzkino || movieThumbnail.src;
       const updatedMovie = await Movie.findByIdAndUpdate(
         movie._id,
         { imgImdb: backdrop_path },
