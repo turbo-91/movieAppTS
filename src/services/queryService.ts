@@ -1,5 +1,6 @@
 import dbConnect from "@/db/mongodb";
 import Query from "@/db/models/Query";
+import Movie from "@/db/models/Movie";
 
 export async function getAllQueriesFromDB() {
   await dbConnect();
@@ -29,5 +30,37 @@ export async function postQuery(query: string) {
   } catch (error) {
     console.error("Error posting query:", error);
     throw new Error("Error inserting query into the database");
+  }
+}
+
+export async function getMoviesByQuery(query: string) {
+  await dbConnect();
+
+  if (!query || typeof query !== "string") {
+    throw new Error("Invalid input: query must be a non-empty string");
+  }
+
+  try {
+    const movies = await Movie.find({ queries: query });
+    return movies;
+  } catch (error) {
+    console.error("Error fetching movies by query:", error);
+    throw new Error("Unable to fetch movies");
+  }
+}
+
+export async function isQueryInDb(query: string) {
+  await dbConnect();
+
+  if (!query || typeof query !== "string") {
+    throw new Error("Invalid input: query must be a non-empty string");
+  }
+
+  try {
+    const existingQuery = await Query.findOne({ query });
+    return existingQuery !== null;
+  } catch (error) {
+    console.error("Error checking if query exists in DB:", error);
+    throw new Error("Unable to check query existence");
   }
 }
