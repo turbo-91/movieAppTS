@@ -207,5 +207,5 @@ export const query =
 export const imdbKey = process.env.NEXT_PUBLIC_TMDB_KEY;
 export const netzkinoKey = process.env.NEXT_PUBLIC_NETZKINO_KEY;
 
-export const backdropUrl = `https://image.tmdb.org/t/p/w500`;
+export const backdropUrl = `https://image.tmdb.org/t/p/original`;
 export const netzkinoURL = `https://api.netzkino.de.simplecache.net/capi-2.0a/search`;
