@@ -1,10 +1,10 @@
 import dbConnect from "../db/mongodb";
 import Movie from "../db/models/Movie";
-import { postQuery } from "./movieServiceOld";
+import { postQuery } from "./queryService";
 import { IMovie } from "@/db/models/Movie";
 import { fetchMoviesFromNetzkino } from "./netzkinoFetcher";
 import { postMovies } from "./movieDB";
-import { addImgImdb } from "./movieServiceOld";
+import { addImgImdb } from "./imdbService";
 
 // Fetches movies of the day from Netzkino API, caches them in the database,
 // and fetches additional image from ImdB.
@@ -51,8 +51,12 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
 export async function getSearchMovies(query: string) {
   const movies: IMovie[] = await fetchMoviesFromNetzkino(query);
   if (!movies.length) return;
-
   await postQuery(query);
+  processAndSaveNetzkinoMovies(movies);
+  return movies.slice(0, 20);
+}
+
+export async function processAndSaveNetzkinoMovies(movies: IMovie[]) {
   await postMovies(movies);
   addImgImdb(movies);
 }
