@@ -1,6 +1,7 @@
 import dbConnect from "../db/mongodb";
 import Movie from "../db/models/Movie";
-import { postQuery } from "./queryService";
+import { isQueryInDb, postQuery } from "./queryService";
+import { getMoviesByQuery } from "./movieDB";
 import { IMovie } from "@/db/models/Movie";
 import { fetchMoviesFromNetzkino } from "./netzkinoFetcher";
 import { postMovies } from "./movieDB";
@@ -49,14 +50,16 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
 }
 
 export async function getSearchMovies(query: string) {
-  const movies: IMovie[] = await fetchMoviesFromNetzkino(query);
-  if (!movies.length) return;
-  await postQuery(query);
-  processAndSaveNetzkinoMovies(movies);
-  return movies.slice(0, 20);
-}
-
-export async function processAndSaveNetzkinoMovies(movies: IMovie[]) {
-  await postMovies(movies);
-  addImgImdb(movies);
+  const queryInDb = await isQueryInDb(query);
+  if (queryInDb === true) {
+    const cachedMovies = getMoviesByQuery(query);
+    return cachedMovies;
+  } else {
+    const movies: IMovie[] = await fetchMoviesFromNetzkino(query);
+    if (!movies.length) return;
+    await postQuery(query);
+    await postMovies(movies);
+    addImgImdb(movies);
+    return movies;
+  }
 }
