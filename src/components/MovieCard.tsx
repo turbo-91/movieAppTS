@@ -3,11 +3,15 @@ import { IMovie } from "@/db/models/Movie";
 import movieThumbnail from "/public/movieThumbnail.png";
 import Image from "next/image";
 
-export interface SliderCardProps {
+export interface MovieCardProps {
   movie: IMovie;
 }
 
-export default function SliderCard(props: Readonly<SliderCardProps>) {
+const customLoader = ({ src }: { src: string }) => {
+  return src; // ✅ Allows any external image URL
+};
+
+export default function MovieCard(props: Readonly<MovieCardProps>) {
   const { movie } = props;
   const [imageSrc, setImageSrc] = useState(
     movie.imgNetzkino || movieThumbnail.src
@@ -18,9 +22,11 @@ export default function SliderCard(props: Readonly<SliderCardProps>) {
       <h2>{movie.title}</h2>
       <p>{movie.year}</p>
       <Image
+        loader={customLoader}
         src={imageSrc}
         alt={movie.title}
-        fill
+        width={600}
+        height={200}
         onError={() => setImageSrc(movieThumbnail.src)}
       />
     </>

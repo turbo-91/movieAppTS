@@ -5,7 +5,7 @@ import { fetcher } from "@/lib/fetcher";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Slider from "react-slick";
-import SliderCard from "@/components/SliderCard";
+import MovieCard from "@/components/MovieCard";
 import MovieDetail from "@/components/MovieDetail";
 
 export default function Home() {
@@ -49,7 +49,7 @@ export default function Home() {
               onClick={() => setSelectedMovie(movie)}
               onKeyUp={() => setSelectedMovie(movie)}
             >
-              <SliderCard movie={movie} />
+              <MovieCard movie={movie} />
             </div>
           ))}
         </Slider>
