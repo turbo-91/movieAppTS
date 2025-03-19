@@ -3,6 +3,7 @@ import useSWR from "swr";
 import MovieDetail from "@/components/MovieDetail";
 import { IMovie } from "@/db/models/Movie";
 import { fetcher } from "@/lib/fetcher";
+import { useDebounce } from "use-debounce";
 
 function SearchPage() {
   const [query, setQuery] = useState("");
@@ -13,8 +14,11 @@ function SearchPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
+  // Debounce the query with 700ms delay
+  const [debouncedQuery] = useDebounce(query, 700);
+
   const { data: movies = [], error: fetchError } = useSWR(
-    query ? `/api/movies?query=${query}` : null,
+    query ? `/api/movies/search?query=${debouncedQuery}` : null,
     fetcher,
     { dedupingInterval: 700 }
   );
