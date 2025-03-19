@@ -14,7 +14,7 @@ function SearchPage() {
   const itemsPerPage = 20;
 
   const { data: movies = [], error: fetchError } = useSWR(
-    query ? `/api/movies?query=${query}` : null,
+    query ? `/api/movies/search?query=${query}` : null,
     fetcher,
     { dedupingInterval: 700 }
   );
