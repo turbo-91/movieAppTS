@@ -14,14 +14,14 @@ function SearchPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
+  // Debounce the query with 700ms delay
+  const [debouncedQuery] = useDebounce(query, 700);
+
   const { data: movies = [], error: fetchError } = useSWR(
     query ? `/api/movies/search?query=${debouncedQuery}` : null,
     fetcher,
     { dedupingInterval: 700 }
   );
-
-  // Debounce the query with 700ms delay using the use-debounce library
-  const [debouncedQuery] = useDebounce(query, 700);
 
   // Reset to first page when query changes (or when movies update)
   useEffect(() => {
