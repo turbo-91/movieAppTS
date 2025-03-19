@@ -14,6 +14,7 @@
     "@auth/mongodb-adapter": "^3.8.0",
     "@types/react-slick": "^0.23.13",
     "axios": "^1.7.9",
+    "bottleneck": "^2.19.5",
     "mongodb": "^6.14.2",
     "next": "15.1.6",
     "next-auth": "^4.24.11",
@@ -22,7 +23,8 @@
     "react-slick": "^0.30.3",
     "slick-carousel": "^1.8.1",
     "styled-components": "^6.0.2",
-    "swr": "^2.3.2"
+    "swr": "^2.3.2",
+    "use-debounce": "^10.0.4"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.26.8",
