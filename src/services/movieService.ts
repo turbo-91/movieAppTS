@@ -7,6 +7,7 @@ import { fetchMoviesFromNetzkino } from "./netzkinoFetcher";
 import { postMovies } from "./movieDB";
 import { addImgImdb } from "./imdbService";
 import Bottleneck from "bottleneck";
+import movieThumbnail from "/public/movieThumbnail.png";
 
 // Fetches movies of the day from Netzkino API, caches them in the database,
 // and fetches additional image from ImdB.
@@ -33,11 +34,22 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
   ) {
     const query =
       randomQueries[Math.floor(Math.random() * randomQueries.length)];
+    const fallbackImg = movieThumbnail.src;
     const movies = await fetchMoviesFromNetzkino(query);
+    const filteredMovies = movies.filter(
+      (movie: IMovie) => movie.imgNetzkino !== fallbackImg
+    );
+    movies.map((movie) => {
+      if (movie.imgNetzkino) {
+        moviesOfTheDay.push(movie);
+      }
+      if (!movie.imgNetzkino) {
+        otherMovies.push(movie);
+      }
+    });
 
     if (movies.length > 0) {
       await postQuery(query); // Cache query in DB
-      moviesOfTheDay.push(...movies);
     }
   }
 
