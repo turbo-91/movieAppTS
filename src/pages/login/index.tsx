@@ -1,6 +1,7 @@
 import React from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import Image from "next/image";
+import { customLoader } from "@/lib/constants/constants";
 
 function Login() {
   const { data: session } = useSession();
@@ -19,12 +20,14 @@ function Login() {
       <button onClick={() => signIn("github")}>
         Jetzt einloggen mit
         <Image
+          loader={customLoader}
           src="/github-mark.png"
           alt="Github mark"
           width={20}
           height={20}
         />
         <Image
+          loader={customLoader}
           src="/GitHub_Logo.png"
           alt="Github Logo"
           width={60}
