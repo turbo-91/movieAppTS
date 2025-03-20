@@ -1,15 +1,11 @@
 import { useState } from "react";
 import { IMovie } from "@/db/models/Movie";
-import movieThumbnail from "/public/movieThumbnail.png";
+import { customLoader } from "@/lib/constants/constants";
 import Image from "next/image";
 
 export interface MovieCardProps {
   movie: IMovie;
 }
-
-const customLoader = ({ src }: { src: string }) => {
-  return src; // ✅ Allows any external image URL
-};
 
 export default function MovieCard(props: Readonly<MovieCardProps>) {
   const { movie } = props;
