@@ -4,7 +4,9 @@ import { customLoader } from "@/lib/constants/constants";
 import Image from "next/image";
 
 export interface MovieCardProps {
+  key: number;
   movie: IMovie;
+  onClick: (movie: IMovie) => void;
 }
 
 export default function MovieCard(props: Readonly<MovieCardProps>) {

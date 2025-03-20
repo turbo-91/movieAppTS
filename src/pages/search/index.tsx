@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import useSWR from "swr";
+import MovieCard from "@/components/MovieCard";
 import MovieDetail from "@/components/MovieDetail";
 import { IMovie } from "@/db/models/Movie";
 import { fetcher } from "@/lib/fetcher";
@@ -85,9 +86,11 @@ function SearchPage() {
           {/* DISPLAY PAGINATED MOVIE LIST */}
           <ul>
             {currentMovies.map((movie: IMovie) => (
-              <li key={movie._id} onClick={() => setSelectedMovie(movie)}>
-                {movie.title}
-              </li>
+              <MovieCard
+                key={movie._id}
+                onClick={() => setSelectedMovie(movie)}
+                movie={movie}
+              />
             ))}
           </ul>
 
