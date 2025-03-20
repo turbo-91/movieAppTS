@@ -13,9 +13,12 @@ const customLoader = ({ src }: { src: string }) => {
 
 export default function MovieCard(props: Readonly<MovieCardProps>) {
   const { movie } = props;
-  const [imageSrc, setImageSrc] = useState(
-    movie.imgNetzkino || movie.imgImdb || movieThumbnail.src
-  );
+  const [imageSrc, setImageSrc] = useState(movie.imgNetzkino || movie.imgImdb);
+  const [hasError, setHasError] = useState(false);
+
+  if (hasError) {
+    return null;
+  }
 
   return (
     <>
@@ -27,7 +30,7 @@ export default function MovieCard(props: Readonly<MovieCardProps>) {
         alt={movie.title}
         width={600}
         height={200}
-        onError={() => setImageSrc(movieThumbnail.src)}
+        onError={() => setHasError(true)}
       />
     </>
   );
