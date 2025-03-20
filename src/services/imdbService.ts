@@ -5,6 +5,7 @@ import { backdropUrl } from "@/lib/constants/constants";
 import { IMovie } from "@/db/models/Movie";
 
 export async function addImgImdb(movies: IMovie[]) {
+  console.log("addImgImdb starting");
   for (const movie of movies) {
     const imdbId = movie.imgImdb;
     if (imdbId === "n/a") {

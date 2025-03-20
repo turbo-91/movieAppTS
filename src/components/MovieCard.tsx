@@ -14,7 +14,7 @@ const customLoader = ({ src }: { src: string }) => {
 export default function MovieCard(props: Readonly<MovieCardProps>) {
   const { movie } = props;
   const [imageSrc, setImageSrc] = useState(
-    movie.imgNetzkino || movieThumbnail.src
+    movie.imgNetzkino || movie.imgImdb || movieThumbnail.src
   );
 
   return (
