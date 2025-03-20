@@ -10,7 +10,7 @@ export interface MovieCardProps {
 }
 
 export default function MovieCard(props: Readonly<MovieCardProps>) {
-  const { movie } = props;
+  const { movie, onClick } = props;
   const [imageSrc, setImageSrc] = useState(movie.imgNetzkino || movie.imgImdb);
   const [hasError, setHasError] = useState(false);
 
@@ -19,7 +19,7 @@ export default function MovieCard(props: Readonly<MovieCardProps>) {
   }
 
   return (
-    <>
+    <div onClick={() => onClick(movie)}>
       <h2>{movie.title}</h2>
       <p>{movie.year}</p>
       <Image
@@ -30,6 +30,6 @@ export default function MovieCard(props: Readonly<MovieCardProps>) {
         height={200}
         onError={() => setHasError(true)}
       />
-    </>
+    </div>
   );
 }
