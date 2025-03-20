@@ -41,7 +41,7 @@ export async function fetchMoviesFromNetzkino(
         imgNetzkino: movie.custom_fields?.featured_img_all?.[0] || fallbackImg,
         imgNetzkinoSmall:
           movie.custom_fields?.featured_img_all_small?.[0] || fallbackImg,
-        imgImdb: imgImdb || "n/a",
+        imgImdb: imgImdb || movie.custom_fields?.featured_img_all?.[0] || "n/a",
         queries: query,
         dateFetched: today,
       };

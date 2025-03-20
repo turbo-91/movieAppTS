@@ -22,9 +22,9 @@ export default function Home() {
   // slider functionality
 
   const settings = {
-    dots: true,
+    dots: false,
     infinite: true,
-    slidesToShow: 3,
+    slidesToShow: 5,
     slidesToScroll: 1,
     autoplay: true,
     speed: 10000,

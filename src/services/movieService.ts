@@ -54,13 +54,20 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
   }
 
   if (moviesOfTheDay.length < 5) {
+    return moviesOfTheDay;
+  }
+
+  if (moviesOfTheDay.length > 0) {
+    await postMovies(moviesOfTheDay);
+    addImgImdb(moviesOfTheDay);
+  } else {
     return { success: false, error: "Not enough movies could be fetched." };
   }
 
-  await postMovies(moviesOfTheDay); // save fetched movies to db
-  addImgImdb(moviesOfTheDay);
-  await postMovies(otherMovies);
-  addImgImdb(otherMovies);
+  if (otherMovies.length > 0) {
+    await postMovies(otherMovies);
+    addImgImdb(otherMovies);
+  }
 
   return moviesOfTheDay.slice(0, 5);
 }
