@@ -22,12 +22,13 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
   }
 
   // movies have not been fetched today: fetch movies from APIs
-  const collectedMovies: IMovie[] = [];
+  const moviesOfTheDay: IMovie[] = [];
+  const otherMovies: IMovie[] = [];
   const maxRetries = 10;
 
   for (
     let retryCount = 0;
-    collectedMovies.length < 5 && retryCount < maxRetries;
+    moviesOfTheDay.length < 5 && retryCount < maxRetries;
     retryCount++
   ) {
     const query =
@@ -36,18 +37,20 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
 
     if (movies.length > 0) {
       await postQuery(query); // Cache query in DB
-      collectedMovies.push(...movies);
+      moviesOfTheDay.push(...movies);
     }
   }
 
-  if (collectedMovies.length < 5) {
+  if (moviesOfTheDay.length < 5) {
     return { success: false, error: "Not enough movies could be fetched." };
   }
 
-  await postMovies(collectedMovies); // save fetched movies to db
-  addImgImdb(collectedMovies);
+  await postMovies(moviesOfTheDay); // save fetched movies to db
+  addImgImdb(moviesOfTheDay);
+  await postMovies(otherMovies);
+  addImgImdb(otherMovies);
 
-  return collectedMovies.slice(0, 5);
+  return moviesOfTheDay.slice(0, 5);
 }
 
 const limiter = new Bottleneck({
