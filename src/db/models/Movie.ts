@@ -14,6 +14,7 @@ export interface IMovie extends Document {
   imgImdb: string;
   queries: string[];
   dateFetched?: string[];
+  savedBy?: string[];
 }
 
 const movieSchema = new Schema<IMovie>({
@@ -30,6 +31,7 @@ const movieSchema = new Schema<IMovie>({
   imgImdb: { type: String, required: true },
   queries: { type: [String], required: true },
   dateFetched: { type: String, required: false },
+  savedBy: { type: [String], required: false },
 });
 
 const Movie = mongoose.models.Movie || mongoose.model("Movie", movieSchema);
