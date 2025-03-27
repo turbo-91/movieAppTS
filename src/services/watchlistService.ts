@@ -39,3 +39,26 @@ export async function addUserIdToMovie(movieId: string, userId: string) {
     throw new Error("Unable to fetch movies");
   }
 }
+
+export async function removeUserIdFromMovie(movieId: string, userId: string) {
+  await dbConnect();
+
+  if (!userId?.trim() || !movieId?.trim()) {
+    // "?.trim()" ensures not to pass strings with spaces only
+    throw new Error(
+      "Invalid input: userId and movieId must be non-empty strings"
+    );
+  }
+
+  try {
+    const movie = await Movie.findOneAndUpdate(
+      { _id: movieId },
+      { $pull: { savedBy: userId } },
+      { new: true }
+    );
+    return movie;
+  } catch (error) {
+    console.error("Error updating movie (", movieId, ") by userId:", error);
+    throw new Error("Unable to fetch movies");
+  }
+}
