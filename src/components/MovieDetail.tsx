@@ -1,6 +1,7 @@
 import { IMovie } from "@/db/models/Movie";
 import movieThumbnail from "/public/movieThumbnail.png";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 
 interface MovieDetailProps {
@@ -9,12 +10,15 @@ interface MovieDetailProps {
 }
 
 export default function MovieDetail({ movie, onBack }: MovieDetailProps) {
-  const customLoader = ({ src }: { src: string }) => {
-    return src; // ✅ Allows any external image URL
-  };
+  const { data: session } = useSession();
+  const userId = session?.user?.userId; // check custom nextAuth type in types folder that ensures type safety in combination with nextAuth
+
   const [imageSrc, setImageSrc] = useState(
     movie.imgImdb || movie.imgNetzkino || movieThumbnail.src
   );
+  const customLoader = ({ src }: { src: string }) => {
+    return src; // ✅ Allows any external image URL
+  };
 
   return (
     <div className="p-4 bg-gray-800 text-white rounded-lg">
