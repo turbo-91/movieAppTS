@@ -8,10 +8,11 @@ export default async function watchlistHandler(
   res: NextApiResponse
 ) {
   await dbConnect();
+  const { userid, movieId } = req.query;
+
   switch (req.method) {
     case "GET":
       try {
-        const { userid } = req.query;
         if (!userid || typeof userid !== "string") {
           return res
             .status(400)
@@ -27,6 +28,24 @@ export default async function watchlistHandler(
         return res.status(200).json(movies);
       } catch (error) {
         return handleApiError(res, "Error fetching movies", error);
+      }
+    case "POST":
+      try {
+        if (!userid || typeof userid !== "string") {
+          return res
+            .status(400)
+            .json({ error: "UserId parameter is required" });
+        }
+
+        const updatedMovie = await updateUserToMovie(movieId, userid);
+
+        if (!updatedMovie || updatedMovie.length === 0) {
+          return res.status(404).json({ status: "Movie not Found" });
+        }
+
+        return res.status(200).json(updatedMovie);
+      } catch (error) {
+        return handleApiError(res, "Error saving userId to movie", error);
       }
     default:
       return res.status(405).json({ status: "Method Not Allowed" });
