@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import dbConnect from "@/db/mongodb";
-import { getMoviesByUser } from "@/services/watchlistService";
+import { getMoviesByUser, addUserIdToMovie } from "@/services/watchlistService";
 import handleApiError from "@/lib/handleApiError";
 
 export default async function watchlistHandler(
@@ -8,11 +8,12 @@ export default async function watchlistHandler(
   res: NextApiResponse
 ) {
   await dbConnect();
-  const { userid, movieId } = req.query;
 
   switch (req.method) {
     case "GET":
       try {
+        const { userid } = req.query;
+
         if (!userid || typeof userid !== "string") {
           return res
             .status(400)
@@ -31,13 +32,20 @@ export default async function watchlistHandler(
       }
     case "POST":
       try {
-        if (!userid || typeof userid !== "string") {
+        const { userId, movieId } = req.body;
+
+        if (
+          !userId ||
+          typeof userId !== "string" ||
+          !movieId ||
+          typeof movieId !== "string"
+        ) {
           return res
             .status(400)
-            .json({ error: "UserId parameter is required" });
+            .json({ error: "userId and movieId must be non-empty strings" });
         }
 
-        const updatedMovie = await updateUserToMovie(movieId, userid);
+        const updatedMovie = await addUserIdToMovie(movieId, userId);
 
         if (!updatedMovie || updatedMovie.length === 0) {
           return res.status(404).json({ status: "Movie not Found" });
