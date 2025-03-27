@@ -66,3 +66,19 @@ export async function getMovieById(movieId: string) {
     throw new Error("Unable to fetch movie by ID");
   }
 }
+
+export async function getMoviesByUser(userId: string) {
+  await dbConnect();
+
+  if (!userId || typeof userId !== "string") {
+    throw new Error("Invalid input: userId must be a non-empty string");
+  }
+
+  try {
+    const movies = await Movie.find({ savedBy: userId });
+    return movies;
+  } catch (error) {
+    console.error("Error fetching movies by query:", error);
+    throw new Error("Unable to fetch movies");
+  }
+}
