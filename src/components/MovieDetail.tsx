@@ -1,7 +1,10 @@
 import { IMovie } from "@/db/models/Movie";
-import movieThumbnail from "/public/movieThumbnail.png";
+import { useRouter } from "next/router";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
+import { useWatchlist } from "@/lib/hooks/useWatchlist";
+import { customLoader } from "@/lib/constants/constants";
 
 interface MovieDetailProps {
   movie: IMovie;
@@ -9,19 +12,30 @@ interface MovieDetailProps {
 }
 
 export default function MovieDetail({ movie, onBack }: MovieDetailProps) {
-  const customLoader = ({ src }: { src: string }) => {
-    return src; // ✅ Allows any external image URL
-  };
-  const [imageSrc, setImageSrc] = useState(
-    movie.imgImdb || movie.imgNetzkino || movieThumbnail.src
+  // Session and Watchlist
+  const { data: session } = useSession();
+  const userId = session?.user?.userId; // beachte: custom nextAuth type in types folder that ensures type safety in combination with nextAuth
+  const { isInWatchlist, addToWatchlist, removeFromWatchlist } = useWatchlist(
+    userId,
+    movie._id
   );
+  const router = useRouter();
 
+  // Image functionality
+  const [imageSrc, setImageSrc] = useState(movie.imgNetzkino || movie.imgImdb);
+  const [hasError, setHasError] = useState(false);
+
+  if (hasError) {
+    return null;
+  }
+
+  console.log("is in Watchlist?", isInWatchlist);
+  console.log("movieId ", movie._id);
+  console.log("userId ", userId);
   return (
-    <div className="p-4 bg-gray-800 text-white rounded-lg">
-      <button onClick={onBack} className="text-red-500">
-        Back to Movies
-      </button>
-      <h2 className="text-2xl">{movie.title}</h2>
+    <div>
+      <button onClick={onBack}>Back to Movies</button>
+      <h2>{movie.title}</h2>
       <p>{movie.overview}</p>
       <p>{movie.regisseur}</p>
       <p>{movie.stars}</p>
@@ -31,8 +45,21 @@ export default function MovieDetail({ movie, onBack }: MovieDetailProps) {
         alt={movie.title}
         width={600}
         height={200}
-        onError={() => setImageSrc(movieThumbnail.src)}
+        onError={() => setHasError(true)}
       />
+      {isInWatchlist ? (
+        <button
+          onClick={() =>
+            removeFromWatchlist(() => {
+              router.replace(router.asPath);
+            })
+          }
+        >
+          Remove from Watchlist
+        </button>
+      ) : (
+        <button onClick={addToWatchlist}>Add to Watchlist</button>
+      )}
     </div>
   );
 }

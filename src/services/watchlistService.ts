@@ -1,0 +1,64 @@
+import dbConnect from "@/db/mongodb";
+import Movie from "@/db/models/Movie";
+
+export async function getMoviesByUser(userId: string) {
+  await dbConnect();
+
+  if (!userId || typeof userId !== "string") {
+    throw new Error("Invalid input: userId must be a non-empty string");
+  }
+
+  try {
+    const movies = await Movie.find({ savedBy: userId });
+    return movies;
+  } catch (error) {
+    console.error("Error fetching movies by userId (", userId, "):", error);
+    throw new Error("Unable to fetch movies");
+  }
+}
+
+export async function addUserIdToMovie(movieId: number, userId: string) {
+  await dbConnect();
+
+  if (!userId?.trim() || !movieId) {
+    // "?.trim()" ensures not to pass strings with spaces only
+    throw new Error(
+      "Invalid input: userId and movieId must be non-empty strings"
+    );
+  }
+
+  try {
+    const movie = await await Movie.findOneAndUpdate(
+      { _id: movieId },
+      { $addToSet: { savedBy: userId } },
+      { new: true }
+    );
+    return movie;
+  } catch (error) {
+    console.error("Error updating movie (", movieId, ") by userId:", error);
+    throw new Error("Unable to fetch movies");
+  }
+}
+
+export async function removeUserIdFromMovie(movieId: number, userId: string) {
+  await dbConnect();
+
+  if (!userId?.trim() || !movieId) {
+    // "?.trim()" ensures not to pass strings with spaces only
+    throw new Error(
+      "Invalid input: userId and movieId must be non-empty strings"
+    );
+  }
+
+  try {
+    const movie = await Movie.findOneAndUpdate(
+      { _id: movieId },
+      { $pull: { savedBy: userId } },
+      { new: true }
+    );
+    return movie;
+  } catch (error) {
+    console.error("Error updating movie (", movieId, ") by userId:", error);
+    throw new Error("Unable to fetch movies");
+  }
+}
