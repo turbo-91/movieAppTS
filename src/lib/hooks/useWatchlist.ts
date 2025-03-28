@@ -34,7 +34,7 @@ export const useWatchlist = (userId?: string, movieId?: number) => {
     }
   };
 
-  const removeFromWatchlist = async () => {
+  const removeFromWatchlist = async (onSuccess?: () => void) => {
     if (!userId || !movieId) return;
 
     const res = await fetch("/api/movies/watchlist", {
@@ -45,12 +45,16 @@ export const useWatchlist = (userId?: string, movieId?: number) => {
 
     if (res.ok) {
       mutate(`/api/movies/watchlist?userid=${userId}`);
+      if (typeof onSuccess === "function") {
+        onSuccess(); // puhs component
+      }
     } else {
       console.error("Failed to remove from watchlist");
     }
   };
 
   return {
+    watchlist,
     isInWatchlist,
     addToWatchlist,
     removeFromWatchlist,

@@ -1,5 +1,5 @@
 import { IMovie } from "@/db/models/Movie";
-import movieThumbnail from "/public/movieThumbnail.png";
+import { useRouter } from "next/router";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
@@ -19,6 +19,7 @@ export default function MovieDetail({ movie, onBack }: MovieDetailProps) {
     userId,
     movie._id
   );
+  const router = useRouter();
 
   // Image functionality
   const [imageSrc, setImageSrc] = useState(movie.imgNetzkino || movie.imgImdb);
@@ -47,7 +48,15 @@ export default function MovieDetail({ movie, onBack }: MovieDetailProps) {
         onError={() => setHasError(true)}
       />
       {isInWatchlist ? (
-        <button onClick={removeFromWatchlist}>Remove from Watchlist</button>
+        <button
+          onClick={() =>
+            removeFromWatchlist(() => {
+              router.replace(router.asPath);
+            })
+          }
+        >
+          Remove from Watchlist
+        </button>
       ) : (
         <button onClick={addToWatchlist}>Add to Watchlist</button>
       )}
