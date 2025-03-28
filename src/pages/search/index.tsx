@@ -5,6 +5,8 @@ import MovieDetail from "@/components/MovieDetail";
 import { IMovie } from "@/db/models/Movie";
 import { fetcher } from "@/lib/fetcher";
 import { useDebounce } from "use-debounce";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 
 function SearchPage() {
   const [query, setQuery] = useState("");
@@ -54,6 +56,19 @@ function SearchPage() {
       setError("Only lowercase letters (a-z) are allowed.");
     }
   };
+
+  // Route Protection
+
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  if (status === "loading") {
+    return <p>Loading...</p>;
+  }
+
+  // Redirect to login if not authenticated
+  if (status === "unauthenticated") {
+    router.push("login");
+  }
 
   return (
     <div>
