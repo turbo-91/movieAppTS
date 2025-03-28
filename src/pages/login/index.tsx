@@ -11,6 +11,7 @@ function Login() {
       <>
         <div>Hi, {userName}!</div>
         <button onClick={() => signOut()}>Logout</button>
+        <div>Your watchlist:</div>
       </>
     );
   }
