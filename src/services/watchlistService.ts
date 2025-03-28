@@ -17,10 +17,10 @@ export async function getMoviesByUser(userId: string) {
   }
 }
 
-export async function addUserIdToMovie(movieId: string, userId: string) {
+export async function addUserIdToMovie(movieId: number, userId: string) {
   await dbConnect();
 
-  if (!userId?.trim() || !movieId?.trim()) {
+  if (!userId?.trim() || !movieId) {
     // "?.trim()" ensures not to pass strings with spaces only
     throw new Error(
       "Invalid input: userId and movieId must be non-empty strings"
@@ -40,10 +40,10 @@ export async function addUserIdToMovie(movieId: string, userId: string) {
   }
 }
 
-export async function removeUserIdFromMovie(movieId: string, userId: string) {
+export async function removeUserIdFromMovie(movieId: number, userId: string) {
   await dbConnect();
 
-  if (!userId?.trim() || !movieId?.trim()) {
+  if (!userId?.trim() || !movieId) {
     // "?.trim()" ensures not to pass strings with spaces only
     throw new Error(
       "Invalid input: userId and movieId must be non-empty strings"

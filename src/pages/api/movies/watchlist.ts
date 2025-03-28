@@ -34,7 +34,7 @@ export default async function watchlistHandler(
       } catch (error) {
         return handleApiError(res, "Error fetching movies", error);
       }
-    case "POST":
+    case "PUT":
       try {
         const { userId, movieId } = req.body;
 
@@ -42,7 +42,7 @@ export default async function watchlistHandler(
           !userId ||
           typeof userId !== "string" ||
           !movieId ||
-          typeof movieId !== "string"
+          typeof movieId !== "number"
         ) {
           return res
             .status(400)
@@ -57,7 +57,8 @@ export default async function watchlistHandler(
 
         return res.status(200).json(updatedMovie);
       } catch (error) {
-        return handleApiError(res, "Error saving userId to movie", error);
+        console.error("💥 PUT /watchlist error", error); // <-- Add this
+        return res.status(500).json({ error: "Something went wrong" });
       }
     case "DELETE":
       try {
@@ -67,7 +68,7 @@ export default async function watchlistHandler(
           !userId ||
           typeof userId !== "string" ||
           !movieId ||
-          typeof movieId !== "string"
+          typeof movieId !== "number"
         ) {
           return res
             .status(400)
