@@ -4,6 +4,7 @@ import { customLoader } from "@/lib/constants/constants";
 import Image from "next/image";
 import { useWatchlist } from "@/lib/hooks/useWatchlist";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 
 export interface MovieCardProps {
   key: number;
@@ -21,6 +22,7 @@ export default function MovieCard(props: Readonly<MovieCardProps>) {
     userId,
     movie._id
   );
+  const router = useRouter();
 
   // Image
   const [imageSrc, setImageSrc] = useState(movie.imgNetzkino || movie.imgImdb);
@@ -45,7 +47,15 @@ export default function MovieCard(props: Readonly<MovieCardProps>) {
         />
       </div>
       {isInWatchlist ? (
-        <button onClick={removeFromWatchlist}>Remove from Watchlist</button>
+        <button
+          onClick={() =>
+            removeFromWatchlist(() => {
+              router.replace(router.asPath);
+            })
+          }
+        >
+          Remove from Watchlist
+        </button>
       ) : (
         <button onClick={addToWatchlist}>Add to Watchlist</button>
       )}
