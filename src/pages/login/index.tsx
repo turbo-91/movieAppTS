@@ -21,7 +21,7 @@ function Login() {
         <div>Hi, {userName}!</div>
         <button onClick={() => signOut()}>Logout</button>
         <div>Your watchlist:</div>
-        {/* DISPLAY MOVIE DETAIL IF A MOVIE IS SELECTED */}
+
         {selectedMovie ? (
           <MovieDetail
             movie={selectedMovie}
@@ -29,7 +29,7 @@ function Login() {
           />
         ) : (
           <>
-            {watchlist ? (
+            {watchlist && watchlist.length > 0 ? (
               <ul>
                 {watchlist.map((movie: IMovie) => (
                   <MovieCard
@@ -42,24 +42,6 @@ function Login() {
             ) : (
               <div>No Movies in your watchlist.</div>
             )}
-
-            {/*       
-            {movies.length > itemsPerPage && (
-              <div style={{ marginTop: "1rem" }}>
-                <button onClick={goToPreviousPage} disabled={currentPage === 1}>
-                  Previous
-                </button>
-                <span style={{ margin: "0 1rem" }}>
-                  Page {currentPage} of {totalPages}
-                </span>
-                <button
-                  onClick={goToNextPage}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </button>
-              </div>
-            )} */}
           </>
         )}
       </>
