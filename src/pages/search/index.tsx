@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
 import useSWR from "swr";
+import MovieCard from "@/components/MovieCard";
 import MovieDetail from "@/components/MovieDetail";
 import { IMovie } from "@/db/models/Movie";
 import { fetcher } from "@/lib/fetcher";
 import { useDebounce } from "use-debounce";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 
 function SearchPage() {
   const [query, setQuery] = useState("");
@@ -54,6 +57,19 @@ function SearchPage() {
     }
   };
 
+  // Route Protection
+
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  if (status === "loading") {
+    return <p>Loading...</p>;
+  }
+
+  // Redirect to login if not authenticated
+  if (status === "unauthenticated") {
+    router.push("login");
+  }
+
   return (
     <div>
       <input
@@ -85,9 +101,11 @@ function SearchPage() {
           {/* DISPLAY PAGINATED MOVIE LIST */}
           <ul>
             {currentMovies.map((movie: IMovie) => (
-              <li key={movie._id} onClick={() => setSelectedMovie(movie)}>
-                {movie.title}
-              </li>
+              <MovieCard
+                key={movie._id}
+                onClick={() => setSelectedMovie(movie)}
+                movie={movie}
+              />
             ))}
           </ul>
 

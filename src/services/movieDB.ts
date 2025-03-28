@@ -10,7 +10,16 @@ export async function postMovies(movies: IMovie[]) {
   }
 
   try {
-    return await Movie.insertMany(movies);
+    const bulkOps = movies.map((movie) => ({
+      updateOne: {
+        filter: { _id: movie._id }, // Check for existing movie by ID
+        update: { $setOnInsert: movie }, // Insert only if not existing
+        upsert: true, // Insert new movies, skip existing
+      },
+    }));
+
+    await Movie.bulkWrite(bulkOps);
+    console.log(`Successfully processed ${movies.length} movies.`);
   } catch (error) {
     console.error("Error inserting movies into DB:", error);
     throw new Error("Database insertion failed");
