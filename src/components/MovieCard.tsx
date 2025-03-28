@@ -2,6 +2,8 @@ import { useState } from "react";
 import { IMovie } from "@/db/models/Movie";
 import { customLoader } from "@/lib/constants/constants";
 import Image from "next/image";
+import { useWatchlist } from "@/lib/hooks/useWatchlist";
+import { useSession } from "next-auth/react";
 
 export interface MovieCardProps {
   key: number;
@@ -11,6 +13,16 @@ export interface MovieCardProps {
 
 export default function MovieCard(props: Readonly<MovieCardProps>) {
   const { movie, onClick } = props;
+
+  // Watchlist
+  const { data: session } = useSession();
+  const userId = session?.user?.userId; // beachte: custom nextAuth type in types folder that ensures type safety in combination with nextAuth
+  const { isInWatchlist, addToWatchlist, removeFromWatchlist } = useWatchlist(
+    userId,
+    movie._id
+  );
+
+  // Image
   const [imageSrc, setImageSrc] = useState(movie.imgNetzkino || movie.imgImdb);
   const [hasError, setHasError] = useState(false);
 
@@ -19,17 +31,24 @@ export default function MovieCard(props: Readonly<MovieCardProps>) {
   }
 
   return (
-    <div onClick={() => onClick(movie)}>
-      <h2>{movie.title}</h2>
-      <p>{movie.year}</p>
-      <Image
-        loader={customLoader}
-        src={imageSrc}
-        alt={movie.title}
-        width={600}
-        height={200}
-        onError={() => setHasError(true)}
-      />
+    <div>
+      <div onClick={() => onClick(movie)}>
+        <h2>{movie.title}</h2>
+        <p>{movie.year}</p>
+        <Image
+          loader={customLoader}
+          src={imageSrc}
+          alt={movie.title}
+          width={600}
+          height={200}
+          onError={() => setHasError(true)}
+        />
+      </div>
+      {isInWatchlist ? (
+        <button onClick={removeFromWatchlist}>Remove from Watchlist</button>
+      ) : (
+        <button onClick={addToWatchlist}>Add to Watchlist</button>
+      )}
     </div>
   );
 }

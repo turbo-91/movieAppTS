@@ -3,11 +3,8 @@ import movieThumbnail from "/public/movieThumbnail.png";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import useSWR from "swr";
-import { fetcher } from "@/lib/fetcher";
-import { mutate } from "swr";
-import { useEffect } from "react";
 import { useWatchlist } from "@/lib/hooks/useWatchlist";
+import { customLoader } from "@/lib/constants/constants";
 
 interface MovieDetailProps {
   movie: IMovie;
@@ -17,17 +14,19 @@ interface MovieDetailProps {
 export default function MovieDetail({ movie, onBack }: MovieDetailProps) {
   // Session and Watchlist
   const { data: session } = useSession();
-  const userId = session?.user?.userId; // check custom nextAuth type in types folder that ensures type safety in combination with nextAuth
-  const { isInWatchlist, addToWatchlist, removeFromWatchlist, isLoading } =
-    useWatchlist(userId, movie._id);
+  const userId = session?.user?.userId; // beachte: custom nextAuth type in types folder that ensures type safety in combination with nextAuth
+  const { isInWatchlist, addToWatchlist, removeFromWatchlist } = useWatchlist(
+    userId,
+    movie._id
+  );
 
   // Image functionality
-  const [imageSrc, setImageSrc] = useState(
-    movie.imgImdb || movie.imgNetzkino || movieThumbnail.src
-  );
-  const customLoader = ({ src }: { src: string }) => {
-    return src; // ✅ Allows any external image URL
-  };
+  const [imageSrc, setImageSrc] = useState(movie.imgNetzkino || movie.imgImdb);
+  const [hasError, setHasError] = useState(false);
+
+  if (hasError) {
+    return null;
+  }
 
   console.log("is in Watchlist?", isInWatchlist);
   console.log("movieId ", movie._id);
@@ -45,7 +44,7 @@ export default function MovieDetail({ movie, onBack }: MovieDetailProps) {
         alt={movie.title}
         width={600}
         height={200}
-        onError={() => setImageSrc(movieThumbnail.src)}
+        onError={() => setHasError(true)}
       />
       {isInWatchlist ? (
         <button onClick={removeFromWatchlist}>Remove from Watchlist</button>
