@@ -23,7 +23,7 @@ const AppTitle = styled.h1`
 `;
 
 const Menu = styled.h3`
-  font-size: 1rem;
+  font-size: 1.2rem;
   font-weight: var(--font-weight-light);
   margin-bottom: 0;
   padding: 0.7rem;
@@ -35,8 +35,10 @@ export default function Header() {
   return (
     <HeaderContainer>
       <AppTitle>Movie App</AppTitle>
-      <Menu onClick={() => setMenu((prevMenu) => !prevMenu)}>Menü</Menu>
-      {menu && <NavBar />}
+      {!menu && (
+        <Menu onClick={() => setMenu((prevMenu) => !prevMenu)}>Menü</Menu>
+      )}
+      {menu && <NavBar menu={menu} setMenu={setMenu} />}
     </HeaderContainer>
   );
 }
