@@ -5,8 +5,10 @@ import Image from "next/image";
 import { useWatchlist } from "@/lib/hooks/useWatchlist";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { Icon, Star } from "lucide-react";
+import { Icon, Star, Film } from "lucide-react";
 import styled from "styled-components";
+import movieThumbnail from "/public/movieThumbnail.png";
+import { useEffect } from "react";
 
 const CardWrapper = styled.div`
   position: relative;
@@ -86,9 +88,63 @@ export default function MovieCard(props: Readonly<MovieCardProps>) {
   // Image
   const [imageSrc, setImageSrc] = useState(movie.imgNetzkino || movie.imgImdb);
   const [hasError, setHasError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+
+  // Only log and retry failed images
+  const handleImageError = () => {
+    console.warn(`[${movie.title}] Image failed to load: ${imageSrc}`);
+    setHasError(true);
+  };
+
+  useEffect(() => {
+    if (hasError && retryCount < 5) {
+      const interval = setInterval(() => {
+        setRetryCount((prev) => prev + 1);
+        setHasError(false); // Try to reload the original image
+      }, 5000); // Retry every 5 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [hasError, retryCount]);
 
   if (hasError) {
-    return null;
+    return (
+      <CardWrapper>
+        <IconWrapper>
+          {isInWatchlist ? (
+            <WatchlistButton
+              onClick={() =>
+                removeFromWatchlist(() => {
+                  router.replace(router.asPath);
+                })
+              }
+            >
+              <Star fill="#FFD700" color="#FFD700" size={35} strokeWidth={1} />
+            </WatchlistButton>
+          ) : (
+            <WatchlistButton onClick={addToWatchlist}>
+              <Star color="#FFD700" size={35} strokeWidth={1.5} />
+            </WatchlistButton>
+          )}
+        </IconWrapper>
+        <HoverInfo className="hover-info">
+          <TitleRow>
+            <Title>{movie.title}</Title>
+            <Year>{movie.year}</Year>
+          </TitleRow>
+        </HoverInfo>
+        <div onClick={() => onClick(movie)}>
+          <Image
+            loader={customLoader}
+            src={movieThumbnail}
+            alt={movie.title}
+            width={450}
+            height={225}
+            onError={() => setHasError(true)}
+          />
+        </div>
+      </CardWrapper>
+    );
   }
 
   return (
@@ -102,28 +158,30 @@ export default function MovieCard(props: Readonly<MovieCardProps>) {
               })
             }
           >
-            <Star fill="white" size={35} strokeWidth={1} />
+            <Star fill="#FFD700" color="#FFD700" size={35} strokeWidth={1} />
           </WatchlistButton>
         ) : (
           <WatchlistButton onClick={addToWatchlist}>
-            <Star size={35} strokeWidth={1} />
+            <Star color="#FFD700" size={35} strokeWidth={1.5} />
           </WatchlistButton>
         )}
       </IconWrapper>
+
       <HoverInfo className="hover-info">
         <TitleRow>
           <Title>{movie.title}</Title>
           <Year>{movie.year}</Year>
         </TitleRow>
       </HoverInfo>
+
       <div onClick={() => onClick(movie)}>
         <Image
           loader={customLoader}
-          src={imageSrc}
+          src={hasError ? movieThumbnail : imageSrc}
           alt={movie.title}
           width={450}
           height={225}
-          onError={() => setHasError(true)}
+          onError={handleImageError}
         />
       </div>
     </CardWrapper>

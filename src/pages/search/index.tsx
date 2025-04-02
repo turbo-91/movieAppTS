@@ -23,7 +23,7 @@ function SearchPage() {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
+  const itemsPerPage = 24;
 
   // Debounce the query with 700ms delay
   const [debouncedQuery] = useDebounce(query, 700);
@@ -87,15 +87,9 @@ function SearchPage() {
         onKeyDown={(e) => e.key === " " && e.preventDefault()} // space not allowed in input
       />
 
-      {/* DISPLAY SEARCH ERROR MESSAGE */}
-      {error && <p className="error">{error}</p>}
-      {fetchError && (
-        <p className="error">Error fetching movies. Please try again.</p>
-      )}
-
-      {/* DISPLAY NO MOVIES FOUND */}
-      {movies.length === 0 && !selectedMovie && !fetchError && (
-        <p>No movies found.</p>
+      {/* DISPLAY NO MOVIES FOUN AS DEFAULT */}
+      {!selectedMovie && (error || fetchError || movies.length === 0) && (
+        <p className="error">No movies found.</p>
       )}
 
       {/* DISPLAY MOVIE DETAIL IF A MOVIE IS SELECTED */}
