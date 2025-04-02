@@ -7,6 +7,14 @@ import { fetcher } from "@/lib/fetcher";
 import { useDebounce } from "use-debounce";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
+import styled from "styled-components";
+
+const CardGrid = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem; /* space between cards */
+  justify-content: center; /* or space-between / flex-start */
+`;
 
 function SearchPage() {
   const [query, setQuery] = useState("");
@@ -99,7 +107,7 @@ function SearchPage() {
       ) : (
         <>
           {/* DISPLAY PAGINATED MOVIE LIST */}
-          <ul>
+          <CardGrid>
             {currentMovies.map((movie: IMovie) => (
               <MovieCard
                 key={movie._id}
@@ -107,7 +115,7 @@ function SearchPage() {
                 movie={movie}
               />
             ))}
-          </ul>
+          </CardGrid>
 
           {/* PAGINATION CONTROLS */}
           {movies.length > itemsPerPage && (
