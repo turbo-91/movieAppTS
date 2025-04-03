@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useWatchlist } from "@/lib/hooks/useWatchlist";
 import { customLoader } from "@/lib/constants/constants";
+import movieThumbnail from "/public/movieThumbnail.png";
 
 interface MovieDetailProps {
   movie: IMovie;
@@ -26,7 +27,36 @@ export default function MovieDetail({ movie, onBack }: MovieDetailProps) {
   const [hasError, setHasError] = useState(false);
 
   if (hasError) {
-    return null;
+    return (
+      <div>
+        <button onClick={onBack}>Back to Movies</button>
+        <h2>{movie.title}</h2>
+        <p>{movie.overview}</p>
+        <p>{movie.regisseur}</p>
+        <p>{movie.stars}</p>
+        <Image
+          loader={customLoader}
+          src={movieThumbnail}
+          alt={movie.title}
+          width={600}
+          height={200}
+          onError={() => setHasError(true)}
+        />
+        {isInWatchlist ? (
+          <button
+            onClick={() =>
+              removeFromWatchlist(() => {
+                router.replace(router.asPath);
+              })
+            }
+          >
+            Remove from Watchlist
+          </button>
+        ) : (
+          <button onClick={addToWatchlist}>Add to Watchlist</button>
+        )}
+      </div>
+    );
   }
 
   console.log("is in Watchlist?", isInWatchlist);
