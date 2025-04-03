@@ -1,11 +1,12 @@
 import axios from "axios";
 import Movie from "@/db/models/Movie";
 import movieThumbnail from "/public/movieThumbnail.png";
-import { backdropUrl } from "@/lib/constants/constants";
+import { posterUrl } from "@/lib/constants/constants";
 import { IMovie } from "@/db/models/Movie";
+import dbConnect from "@/db/mongodb";
 
 export async function addImgImdb(movies: IMovie[]) {
-  console.log("addImgImdb starting");
+  await dbConnect();
   for (const movie of movies) {
     const imdbId = movie.imgImdb;
     if (imdbId === "n/a") {
@@ -17,13 +18,13 @@ export async function addImgImdb(movies: IMovie[]) {
     } else {
       try {
         const response = await axios.get(imdbId);
-        const backdrop = response.data.movie_results?.[0]?.backdrop_path;
-        const backdrop_path = backdrop
-          ? `${backdropUrl}${backdrop}`
+        const poster = response.data.movie_results?.[0]?.poster_path;
+        const poster_path = poster
+          ? `${posterUrl}${poster}`
           : movie.imgNetzkino || movieThumbnail.src;
         const updatedMovie = await Movie.findByIdAndUpdate(
           movie._id,
-          { imgImdb: backdrop_path },
+          { imgImdb: poster_path },
           { new: true }
         );
       } catch (error) {

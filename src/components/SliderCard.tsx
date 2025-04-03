@@ -8,7 +8,10 @@ import { useRouter } from "next/router";
 import { Icon, Star, Film } from "lucide-react";
 import styled from "styled-components";
 import movieThumbnail from "/public/movieThumbnail.png";
+import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
 import { useEffect } from "react";
+import { trusted } from "mongoose";
 
 const CardWrapper = styled.div`
   position: relative;
@@ -67,14 +70,15 @@ const WatchlistButton = styled.button`
   font-size: 1.2rem;
 `;
 
-export interface MovieCardProps {
+export interface SliderCardProps {
   key: number;
+  taskId: string;
   movie: IMovie;
   onClick: (movie: IMovie) => void;
 }
 
-export default function MovieCard(props: Readonly<MovieCardProps>) {
-  const { movie, onClick } = props;
+export default function SliderCard(props: Readonly<SliderCardProps>) {
+  const { movie, onClick, taskId } = props;
 
   // Watchlist
   const { data: session } = useSession();
@@ -85,13 +89,54 @@ export default function MovieCard(props: Readonly<MovieCardProps>) {
   );
   const router = useRouter();
 
+  // Poll task status if a taskId exists
+  const { data: statusData } = useSWR(
+    taskId ? `/api/status/${taskId}` : null,
+    fetcher,
+    {
+      refreshInterval: 2000,
+      shouldRetryOnError: false,
+    }
+  );
+
+  const [status, setStatus] = useState(statusData);
+  useEffect(() => {
+    if (statusData?.status) {
+      setStatus(statusData.status);
+    }
+  }, [statusData]);
+
   // Image
   const [imgSrc, setImgSrc] = useState(
     movie.imgNetzkino || movie.imgImdb || movieThumbnail
   );
   const handleImageError = () => {
     setImgSrc(movieThumbnail);
+    let attempts = 0;
+
+    const tryUpdateImage = () => {
+      if (statusData?.status === "done") {
+        setImgSrc(movie.imgImdb);
+        return;
+      }
+
+      attempts++;
+      if (attempts < 3) {
+        console.log(`Attempt ${attempts} failed. Retrying in 5s...`);
+        setTimeout(tryUpdateImage, 5000); // wait 5 seconds, then try again
+      } else {
+        console.log("All attempts failed.");
+      }
+    };
+
+    tryUpdateImage();
   };
+
+  useEffect(() => {
+    console.log("data in slider:", movie);
+    console.log("taskId in slider:", taskId);
+    console.log("status in slider:", status);
+  }, [taskId, status, movie]);
 
   return (
     <CardWrapper>

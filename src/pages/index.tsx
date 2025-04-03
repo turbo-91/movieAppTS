@@ -5,19 +5,30 @@ import { fetcher } from "@/lib/fetcher";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Slider from "react-slick";
-import MovieCard from "@/components/MovieCard";
+import SliderCard from "@/components/SliderCard";
 import MovieDetail from "@/components/MovieDetail";
+import { useEffect } from "react";
 
 export default function Home() {
-  const { data, error } = useSWR("api/moviesoftheday", fetcher, {
+  const { data, error } = useSWR("/api/moviesoftheday", fetcher, {
     shouldRetryOnError: false,
   });
 
+  const isLoading = !data && !error;
+  const movies: IMovie[] = data?.movies || [];
+  const taskId = data?.taskId || null;
+
   const [selectedMovie, setSelectedMovie] = useState<IMovie | null>(null);
 
-  if (!data && !error) return <div>Loading...</div>;
-  if (error) return <div>Error loading movies: {error.message}</div>;
-  if (!data.length) return <p>No movies found.</p>;
+  // Poll task status if a taskId exists
+  const { data: statusData } = useSWR(
+    taskId ? `/api/status/${taskId}` : null,
+    fetcher,
+    {
+      refreshInterval: 2000,
+      shouldRetryOnError: false,
+    }
+  );
 
   // slider functionality
 
@@ -32,6 +43,14 @@ export default function Home() {
     cssEase: "linear",
   };
 
+  useEffect(() => {
+    console.log("taskId in page:", taskId);
+    console.log("status in page:", statusData);
+  }, [taskId, statusData, data]);
+
+  if (isLoading) return <p>... loading</p>;
+  if (error) console.log(error.message);
+  if (!movies.length && error) return <p>No movies found.</p>;
   return (
     <div>
       <h1>Movies of the Day</h1>
@@ -43,8 +62,9 @@ export default function Home() {
         />
       ) : (
         <Slider {...settings}>
-          {data.map((movie: IMovie) => (
-            <MovieCard
+          {movies.map((movie: IMovie) => (
+            <SliderCard
+              taskId={taskId}
               key={movie.netzkinoId}
               movie={movie}
               onClick={() => setSelectedMovie(movie)}
