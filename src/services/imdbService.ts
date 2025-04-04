@@ -14,12 +14,8 @@ export async function addImgImdb(movie: IMovie) {
 export async function enrichMovies(movies: IMovie[]): Promise<IMovie[]> {
   const enrichedMovies = await Promise.all(
     movies.map(async (movie) => {
-      if (movie.imgImdb === "n/a") {
-        return movie; // return original if skipping
-      } else {
-        const enriched = await addImgImdb(movie);
-        return enriched || movie;
-      }
+      const enriched = await addImgImdb(movie);
+      return enriched || movie;
     })
   );
 

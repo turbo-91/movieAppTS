@@ -11,6 +11,7 @@ import movieThumbnail from "/public/movieThumbnail.png";
 import { v4 as uuidv4 } from "uuid";
 import { runImgTask } from "@/lib/imdbTaskRunner";
 import TaskStatus from "@/db/models/TaskStatus";
+import moviesDayHandler from "@/pages/api/moviesoftheday";
 
 // Fetches movies of the day from Netzkino API, caches them in the database,
 // and fetches additional image from ImdB.
@@ -27,46 +28,35 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
 
   // movies have not been fetched today: fetch movies from APIs
   const moviesOfTheDay: IMovie[] = [];
-  const otherMovies: IMovie[] = [];
-  const maxRetries = 10;
+  const usedQueries = [];
+  const seenMovieIds = new Set<number>(); // Adjust type if necessary
+  let attempts = 0;
+  const maxAttempts = 10;
 
-  for (
-    let retryCount = 0;
-    moviesOfTheDay.length < 5 && retryCount < maxRetries;
-    retryCount++
-  ) {
+  while (moviesOfTheDay.length < 5 && attempts < maxAttempts) {
+    attempts++;
     const query =
       randomQueries[Math.floor(Math.random() * randomQueries.length)];
     const movies = await fetchMoviesFromNetzkino(query);
-    movies.map(async (movie) => {
-      if (movie.imgNetzkino) {
-        await addImgImdb(movie);
-        moviesOfTheDay.push(movie);
-      }
-      if (!movie.imgNetzkino) {
-        otherMovies.push(movie);
-      }
-    });
+    postQuery(query);
 
-    if (movies.length > 0) {
-      await postQuery(query); // Cache query in DB
+    for (const movie of movies) {
+      if (!seenMovieIds.has(movie._id)) {
+        moviesOfTheDay.push(movie);
+        seenMovieIds.add(movie._id);
+      }
+      if (moviesOfTheDay.length === 5) break;
     }
   }
 
-  if (moviesOfTheDay.length === 0) {
-    return { success: false, error: "Not enough movies could be fetched." };
+  if (moviesOfTheDay.length < 5) {
+    console.warn(
+      "Could not fetch 5 unique movies within the maximum number of attempts."
+    );
   }
-
-  if (otherMovies.length > 0) {
-    const enrichedMovies = await enrichMovies(otherMovies);
-    postMovies(enrichedMovies);
-    console.log(" anzahl other movies nach enrichments", enrichedMovies.length);
-  }
-
-  console.log("anzahl movies of the day", moviesOfTheDay.length);
-
   postMovies(moviesOfTheDay);
-  return moviesOfTheDay.slice(0, 5);
+
+  return moviesOfTheDay;
 }
 
 const limiter = new Bottleneck({
