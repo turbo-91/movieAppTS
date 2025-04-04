@@ -7,28 +7,14 @@ import "slick-carousel/slick/slick-theme.css";
 import Slider from "react-slick";
 import SliderCard from "@/components/SliderCard";
 import MovieDetail from "@/components/MovieDetail";
-import { useEffect } from "react";
 
 export default function Home() {
-  const { data, error } = useSWR("/api/moviesoftheday", fetcher, {
+  const { data: movies, error } = useSWR("/api/moviesoftheday", fetcher, {
     shouldRetryOnError: false,
   });
 
-  const isLoading = !data && !error;
-  const movies: IMovie[] = data?.movies || [];
-  const taskId = data?.taskId || null;
-
+  const isLoading = !movies && !error;
   const [selectedMovie, setSelectedMovie] = useState<IMovie | null>(null);
-
-  // Poll task status if a taskId exists
-  const { data: statusData } = useSWR(
-    taskId ? `/api/status/${taskId}` : null,
-    fetcher,
-    {
-      refreshInterval: 2000,
-      shouldRetryOnError: false,
-    }
-  );
 
   // slider functionality
 
@@ -42,11 +28,6 @@ export default function Home() {
     autoplaySpeed: 0,
     cssEase: "linear",
   };
-
-  useEffect(() => {
-    console.log("taskId in page:", taskId);
-    console.log("status in page:", statusData);
-  }, [taskId, statusData, data]);
 
   if (isLoading) return <p>... loading</p>;
   if (error) console.log(error.message);
@@ -64,7 +45,6 @@ export default function Home() {
         <Slider {...settings}>
           {movies.map((movie: IMovie) => (
             <SliderCard
-              taskId={taskId}
               key={movie.netzkinoId}
               movie={movie}
               onClick={() => setSelectedMovie(movie)}

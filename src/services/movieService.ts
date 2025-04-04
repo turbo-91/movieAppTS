@@ -5,7 +5,7 @@ import { getMoviesByQuery } from "./movieDB";
 import { IMovie } from "@/db/models/Movie";
 import { fetchMoviesFromNetzkino } from "./netzkinoFetcher";
 import { postMovies } from "./movieDB";
-import { addImgImdb } from "./imdbService";
+import { addImgImdb, enrichMovies } from "./imdbService";
 import Bottleneck from "bottleneck";
 import movieThumbnail from "/public/movieThumbnail.png";
 import { v4 as uuidv4 } from "uuid";
@@ -21,9 +21,8 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
   // Check if today's movies already exist in the database
   const today = new Date().toLocaleDateString();
   const todaysMovies = await Movie.find({ dateFetched: today });
-
   if (todaysMovies.length > 0) {
-    return { movies: todaysMovies.slice(0, 5) }; // Return only top 5
+    return todaysMovies.slice(0, 5); // Return only the top 5
   }
 
   // movies have not been fetched today: fetch movies from APIs
@@ -38,13 +37,13 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
   ) {
     const query =
       randomQueries[Math.floor(Math.random() * randomQueries.length)];
-    const fallbackImg = movieThumbnail.src;
     const movies = await fetchMoviesFromNetzkino(query);
-
-    movies.forEach((movie: IMovie) => {
-      if (movie.imgNetzkino && movie.imgNetzkino !== fallbackImg) {
+    movies.map(async (movie) => {
+      if (movie.imgNetzkino) {
+        await addImgImdb(movie);
         moviesOfTheDay.push(movie);
-      } else {
+      }
+      if (!movie.imgNetzkino) {
         otherMovies.push(movie);
       }
     });
@@ -54,30 +53,20 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
     }
   }
 
-  if (moviesOfTheDay.length < 5) {
-    return {
-      movies: moviesOfTheDay,
-      success: false,
-      error: "Not enough quality movies could be fetched.",
-    };
+  if (moviesOfTheDay.length === 0) {
+    return { success: false, error: "Not enough movies could be fetched." };
   }
-
-  const taskId = uuidv4();
-  await TaskStatus.create({ taskId, status: "processing" });
-
-  await postMovies(moviesOfTheDay);
-  runImgTask(taskId, moviesOfTheDay);
-  console.log("taskId in getMoviesOfTheDay servuce", taskId);
 
   if (otherMovies.length > 0) {
-    await postMovies(otherMovies);
-    addImgImdb(otherMovies);
+    const enrichedMovies = await enrichMovies(otherMovies);
+    postMovies(enrichedMovies);
+    console.log(" anzahl other movies nach enrichments", enrichedMovies.length);
   }
 
-  return {
-    movies: moviesOfTheDay.slice(0, 5),
-    taskId,
-  };
+  console.log("anzahl movies of the day", moviesOfTheDay.length);
+
+  postMovies(moviesOfTheDay);
+  return moviesOfTheDay.slice(0, 5);
 }
 
 const limiter = new Bottleneck({
