@@ -1,4 +1,4 @@
-export default function idToImg(imdbLink: string) {
+export default function getApiLink(imdbLink: string) {
   const imdbKey = process.env.NEXT_PUBLIC_TMDB_KEY;
   const parts = imdbLink.split("/");
   const imdbId = parts.find((part) => part.startsWith("tt"));
