@@ -8,7 +8,6 @@ import { useRouter } from "next/router";
 import { Icon, Star, Film } from "lucide-react";
 import styled from "styled-components";
 import movieThumbnail from "/public/movieThumbnail.png";
-import { useEffect } from "react";
 
 const CardWrapper = styled.div`
   position: relative;
@@ -67,13 +66,13 @@ const WatchlistButton = styled.button`
   font-size: 1.2rem;
 `;
 
-export interface MovieCardProps {
+export interface SliderCardProps {
   key: number;
   movie: IMovie;
   onClick: (movie: IMovie) => void;
 }
 
-export default function MovieCard(props: Readonly<MovieCardProps>) {
+export default function SliderCard(props: Readonly<SliderCardProps>) {
   const { movie, onClick } = props;
 
   // Watchlist
@@ -90,7 +89,7 @@ export default function MovieCard(props: Readonly<MovieCardProps>) {
     movie.imgNetzkino || movie.imgImdb || movieThumbnail
   );
   const handleImageError = () => {
-    setImgSrc(movieThumbnail);
+    setImgSrc(movie.imgImdb || movieThumbnail);
   };
 
   return (

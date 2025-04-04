@@ -4,7 +4,7 @@ import { IMovie } from "@/db/models/Movie";
 import { postQuery } from "./queryService";
 import movieThumbnail from "/public/movieThumbnail.png";
 import { NetzkinoMovie } from "@/types/NetzkinoMovie";
-import idToImg from "@/lib/idToImg";
+import getApiLink from "@/lib/getApiLink";
 
 export async function fetchMoviesFromNetzkino(
   query: string
@@ -27,7 +27,7 @@ export async function fetchMoviesFromNetzkino(
 
     return response.data.posts.map((movie: NetzkinoMovie) => {
       const imdbLink = movie.custom_fields?.["IMDb-Link"]?.[0];
-      const imgImdb = imdbLink ? idToImg(imdbLink) : null;
+      const imdbApiLink = imdbLink ? getApiLink(imdbLink) : null;
 
       return {
         _id: movie.id ?? null, // Ensure _id exists or set to null
@@ -41,7 +41,7 @@ export async function fetchMoviesFromNetzkino(
         imgNetzkino: movie.custom_fields?.featured_img_all?.[0] || fallbackImg,
         imgNetzkinoSmall:
           movie.custom_fields?.featured_img_all_small?.[0] || fallbackImg,
-        imgImdb: imgImdb || movie.custom_fields?.featured_img_all?.[0] || "n/a",
+        imgImdb: imdbApiLink || "n/a",
         queries: query,
         dateFetched: today,
       };
