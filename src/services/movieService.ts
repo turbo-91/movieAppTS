@@ -5,9 +5,13 @@ import { getMoviesByQuery } from "./movieDB";
 import { IMovie } from "@/db/models/Movie";
 import { fetchMoviesFromNetzkino } from "./netzkinoFetcher";
 import { postMovies } from "./movieDB";
-import { addImgImdb } from "./imdbService";
+import { addImgImdb, enrichMovies } from "./imdbService";
 import Bottleneck from "bottleneck";
 import movieThumbnail from "/public/movieThumbnail.png";
+import { v4 as uuidv4 } from "uuid";
+import { runImgTask } from "@/lib/imdbTaskRunner";
+import TaskStatus from "@/db/models/TaskStatus";
+import moviesDayHandler from "@/pages/api/moviesoftheday";
 
 // Fetches movies of the day from Netzkino API, caches them in the database,
 // and fetches additional image from ImdB.
@@ -24,52 +28,35 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
 
   // movies have not been fetched today: fetch movies from APIs
   const moviesOfTheDay: IMovie[] = [];
-  const otherMovies: IMovie[] = [];
-  const maxRetries = 10;
+  const usedQueries = [];
+  const seenMovieIds = new Set<number>(); // Adjust type if necessary
+  let attempts = 0;
+  const maxAttempts = 10;
 
-  for (
-    let retryCount = 0;
-    moviesOfTheDay.length < 5 && retryCount < maxRetries;
-    retryCount++
-  ) {
+  while (moviesOfTheDay.length < 5 && attempts < maxAttempts) {
+    attempts++;
     const query =
       randomQueries[Math.floor(Math.random() * randomQueries.length)];
-    const fallbackImg = movieThumbnail.src;
     const movies = await fetchMoviesFromNetzkino(query);
-    const filteredMovies = movies.filter(
-      (movie: IMovie) => movie.imgNetzkino !== fallbackImg
-    );
-    movies.map((movie) => {
-      if (movie.imgNetzkino) {
-        moviesOfTheDay.push(movie);
-      }
-      if (!movie.imgNetzkino) {
-        otherMovies.push(movie);
-      }
-    });
+    postQuery(query);
 
-    if (movies.length > 0) {
-      await postQuery(query); // Cache query in DB
+    for (const movie of movies) {
+      if (!seenMovieIds.has(movie._id)) {
+        moviesOfTheDay.push(movie);
+        seenMovieIds.add(movie._id);
+      }
+      if (moviesOfTheDay.length === 5) break;
     }
   }
 
   if (moviesOfTheDay.length < 5) {
-    return moviesOfTheDay;
+    console.warn(
+      "Could not fetch 5 unique movies within the maximum number of attempts."
+    );
   }
+  postMovies(moviesOfTheDay);
 
-  if (moviesOfTheDay.length > 0) {
-    await postMovies(moviesOfTheDay);
-    addImgImdb(moviesOfTheDay);
-  } else {
-    return { success: false, error: "Not enough movies could be fetched." };
-  }
-
-  if (otherMovies.length > 0) {
-    await postMovies(otherMovies);
-    addImgImdb(otherMovies);
-  }
-
-  return moviesOfTheDay.slice(0, 5);
+  return moviesOfTheDay;
 }
 
 const limiter = new Bottleneck({
@@ -77,6 +64,7 @@ const limiter = new Bottleneck({
 });
 
 export async function getSearchMovies(query: string) {
+  await dbConnect();
   const queryInDb = await isQueryInDb(query);
   if (queryInDb === true) {
     const cachedMovies = getMoviesByQuery(query);
@@ -88,7 +76,9 @@ export async function getSearchMovies(query: string) {
     if (!movies.length) return [];
     await postQuery(query);
     await postMovies(movies);
-    addImgImdb(movies);
-    return movies;
+    const taskId = uuidv4();
+    await TaskStatus.create({ taskId, status: "processing" });
+    runImgTask(taskId, movies);
+    return { movies, taskId };
   }
 }

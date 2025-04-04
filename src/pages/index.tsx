@@ -5,19 +5,16 @@ import { fetcher } from "@/lib/fetcher";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Slider from "react-slick";
-import MovieCard from "@/components/MovieCard";
+import SliderCard from "@/components/SliderCard";
 import MovieDetail from "@/components/MovieDetail";
 
 export default function Home() {
-  const { data, error } = useSWR("api/moviesoftheday", fetcher, {
+  const { data: movies, error } = useSWR("/api/moviesoftheday", fetcher, {
     shouldRetryOnError: false,
   });
 
+  const isLoading = !movies && !error;
   const [selectedMovie, setSelectedMovie] = useState<IMovie | null>(null);
-
-  if (!data && !error) return <div>Loading...</div>;
-  if (error) return <div>Error loading movies: {error.message}</div>;
-  if (!data.length) return <p>No movies found.</p>;
 
   // slider functionality
 
@@ -32,6 +29,9 @@ export default function Home() {
     cssEase: "linear",
   };
 
+  if (isLoading) return <p>... loading</p>;
+  if (error) console.log(error.message);
+  if (!movies.length && error) return <p>No movies found.</p>;
   return (
     <div>
       <h1>Movies of the Day</h1>
@@ -43,8 +43,8 @@ export default function Home() {
         />
       ) : (
         <Slider {...settings}>
-          {data.map((movie: IMovie) => (
-            <MovieCard
+          {movies.map((movie: IMovie) => (
+            <SliderCard
               key={movie.netzkinoId}
               movie={movie}
               onClick={() => setSelectedMovie(movie)}
