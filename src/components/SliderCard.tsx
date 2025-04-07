@@ -89,7 +89,11 @@ export default function SliderCard(props: Readonly<SliderCardProps>) {
     movie.imgNetzkino || movie.imgImdb || movieThumbnail
   );
   const handleImageError = () => {
-    setImgSrc(movie.imgImdb || movieThumbnail);
+    if (movie.imgImdb === "n/a") {
+      setImgSrc(movieThumbnail);
+    } else {
+      setImgSrc(movie.imgImdb || movieThumbnail);
+    }
   };
 
   return (

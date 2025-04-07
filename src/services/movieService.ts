@@ -54,6 +54,7 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
       "Could not fetch 5 unique movies within the maximum number of attempts."
     );
   }
+  await enrichMovies(moviesOfTheDay);
   postMovies(moviesOfTheDay);
 
   return moviesOfTheDay;
