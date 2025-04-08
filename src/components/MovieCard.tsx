@@ -123,6 +123,7 @@ export default function MovieCard(props: Readonly<MovieCardProps>) {
       <div onClick={() => onClick(movie)}>
         <Image
           loader={customLoader}
+          loading="lazy"
           src={imgSrc}
           alt={movie.title}
           width={450}

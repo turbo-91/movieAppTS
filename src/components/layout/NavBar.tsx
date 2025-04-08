@@ -15,13 +15,14 @@ const NavContainer = styled.nav`
 const NavButton = styled.button`
   all: unset;
   cursor: pointer;
-  font-size: 1.2rem;
+  font-size: 1.8rem;
 `;
 
 const CloseButton = styled.button`
   all: unset;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 1.2rem;
+  margin-bottom: 3px;
 `;
 
 export interface NavBarProps {
