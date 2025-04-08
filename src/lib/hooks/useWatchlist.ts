@@ -4,21 +4,15 @@ import useSWR, { mutate } from "swr";
 import { fetcher } from "@/lib/fetcher";
 import { IMovie } from "@/db/models/Movie";
 
-export const useWatchlist = (userId?: string, movieId?: number) => {
+// hooks/useWatchlist.ts
+
+export const useWatchlist = (userId?: string) => {
   const { data: watchlist, error } = useSWR(
     userId ? `/api/movies/watchlist?userid=${userId}` : null,
     fetcher
   );
 
-  const [isInWatchlist, setIsInWatchlist] = useState(false);
-
-  useEffect(() => {
-    if (watchlist && Array.isArray(watchlist) && movieId) {
-      setIsInWatchlist(watchlist.some((m: IMovie) => m._id === movieId));
-    }
-  }, [watchlist, movieId]);
-
-  const addToWatchlist = async () => {
+  const addToWatchlist = async (movieId: number) => {
     if (!userId || !movieId) return;
 
     const res = await fetch("/api/movies/watchlist", {
@@ -34,7 +28,7 @@ export const useWatchlist = (userId?: string, movieId?: number) => {
     }
   };
 
-  const removeFromWatchlist = async (onSuccess?: () => void) => {
+  const removeFromWatchlist = async (movieId: number) => {
     if (!userId || !movieId) return;
 
     const res = await fetch("/api/movies/watchlist", {
@@ -45,9 +39,6 @@ export const useWatchlist = (userId?: string, movieId?: number) => {
 
     if (res.ok) {
       mutate(`/api/movies/watchlist?userid=${userId}`);
-      if (typeof onSuccess === "function") {
-        onSuccess(); // puhs component
-      }
     } else {
       console.error("Failed to remove from watchlist");
     }
@@ -55,7 +46,6 @@ export const useWatchlist = (userId?: string, movieId?: number) => {
 
   return {
     watchlist,
-    isInWatchlist,
     addToWatchlist,
     removeFromWatchlist,
     isLoading: !watchlist && !error,
