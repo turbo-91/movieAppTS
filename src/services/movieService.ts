@@ -56,6 +56,7 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
   }
   await enrichMovies(moviesOfTheDay);
   postMovies(moviesOfTheDay);
+  console.log("MOVIES OF THE DAY", moviesOfTheDay);
 
   return moviesOfTheDay;
 }
