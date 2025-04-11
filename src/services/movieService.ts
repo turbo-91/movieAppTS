@@ -56,6 +56,7 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
   }
   await enrichMovies(moviesOfTheDay);
   postMovies(moviesOfTheDay);
+  console.log("MOVIES OF THE DAY", moviesOfTheDay);
 
   return moviesOfTheDay;
 }
@@ -76,10 +77,8 @@ export async function getSearchMovies(query: string) {
     );
     if (!movies.length) return [];
     await postQuery(query);
-    await postMovies(movies);
-    const taskId = uuidv4();
-    await TaskStatus.create({ taskId, status: "processing" });
-    runImgTask(taskId, movies);
-    return { movies, taskId };
+    await enrichMovies(movies);
+    postMovies(movies);
+    return movies;
   }
 }
