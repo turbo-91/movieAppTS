@@ -35,7 +35,7 @@ export default function Header() {
 
   return (
     <HeaderContainer>
-      <AppTitle>Movie App</AppTitle>
+      <AppTitle>Film.Finder</AppTitle>
       {!menu && (
         <Menu onClick={() => setMenu((prevMenu) => !prevMenu)}>Menü</Menu>
       )}
