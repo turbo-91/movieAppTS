@@ -6,6 +6,13 @@ import Image from "next/image";
 import { useWatchlist } from "@/lib/hooks/useWatchlist";
 import { customLoader } from "@/lib/constants/constants";
 import movieThumbnail from "/public/movieThumbnail.png";
+import styled from "styled-components";
+
+const DetailContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
 
 interface MovieDetailProps {
   movie: IMovie;
@@ -22,42 +29,13 @@ export default function MovieDetail({ movie, onBack }: MovieDetailProps) {
   );
   const router = useRouter();
 
-  // Image functionality
-  const [imageSrc, setImageSrc] = useState(movie.imgNetzkino || movie.imgImdb);
-  const [hasError, setHasError] = useState(false);
-
-  if (hasError) {
-    return (
-      <div>
-        <button onClick={onBack}>Back to Movies</button>
-        <h2>{movie.title}</h2>
-        <p>{movie.overview}</p>
-        <p>{movie.regisseur}</p>
-        <p>{movie.stars}</p>
-        <Image
-          loader={customLoader}
-          src={movieThumbnail}
-          alt={movie.title}
-          width={600}
-          height={200}
-          onError={() => setHasError(true)}
-        />
-        {isInWatchlist ? (
-          <button
-            onClick={() =>
-              removeFromWatchlist(() => {
-                router.replace(router.asPath);
-              })
-            }
-          >
-            Remove from Watchlist
-          </button>
-        ) : (
-          <button onClick={addToWatchlist}>Add to Watchlist</button>
-        )}
-      </div>
-    );
-  }
+  // Image
+  const [imgSrc, setImgSrc] = useState(
+    movie.imgNetzkino || movie.imgImdb || movieThumbnail
+  );
+  const handleImageError = () => {
+    setImgSrc(movieThumbnail);
+  };
 
   console.log("is in Watchlist?", isInWatchlist);
   console.log("movieId ", movie._id);
@@ -71,11 +49,11 @@ export default function MovieDetail({ movie, onBack }: MovieDetailProps) {
       <p>{movie.stars}</p>
       <Image
         loader={customLoader}
-        src={imageSrc}
+        src={imgSrc}
         alt={movie.title}
         width={600}
         height={200}
-        onError={() => setHasError(true)}
+        onError={handleImageError}
       />
       {isInWatchlist ? (
         <button
