@@ -8,23 +8,12 @@ import { useDebounce } from "use-debounce";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import styled from "styled-components";
-
-interface InputWrapperProps {
-  centered?: boolean;
-}
+import { SquareLoader } from "react-spinners";
 
 const SearchContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-`;
-
-const InputWrapper = styled.div<InputWrapperProps>`
-  width: 50vw;
-  margin: ${({ centered }) =>
-    centered ? "calc((88vh - 3rem) / 2)" : "1rem auto 0 auto"};
-  display: flex;
-  justify-content: center;
 `;
 
 const StyledInput = styled.input`
@@ -52,7 +41,6 @@ const StyledInput = styled.input`
   }
 `;
 
-/* For the state where there are results (input at top) */
 const InputWrapperTop = styled.div`
   width: 50vw;
   margin: 1rem auto 0 auto;
@@ -60,7 +48,6 @@ const InputWrapperTop = styled.div`
   justify-content: center;
 `;
 
-/* For the state where there are no results (input centered in the viewport) */
 const CenteredContent = styled.div`
   display: flex;
   flex-direction: column;
@@ -86,6 +73,12 @@ const CardGrid = styled.div`
   justify-content: center;
 `;
 
+const SpinnerWrapper = styled.div`
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+`;
+
 function SearchPage() {
   const [query, setQuery] = useState("");
   const [error, setError] = useState("");
@@ -93,9 +86,13 @@ function SearchPage() {
   const [showDebouncedError, setShowDebouncedError] = useState(false);
 
   // Debounce the query with 700ms delay
-  const [debouncedQuery] = useDebounce(query, 700);
+  const [debouncedQuery] = useDebounce(query, 1200);
 
-  const { data: movies = [], error: fetchError } = useSWR(
+  const {
+    data: movies = [],
+    error: fetchError,
+    isValidating,
+  } = useSWR(
     query ? `/api/movies/search?query=${debouncedQuery}` : null,
     fetcher,
     { dedupingInterval: 700 }
@@ -121,7 +118,7 @@ function SearchPage() {
     if ((error || fetchError) && query.trim() !== "") {
       const timer = setTimeout(() => {
         setShowDebouncedError(true);
-      }, 800); // Adjust the debounce delay (ms) as desired
+      }, 1200); // Adjust the debounce delay (ms) as desired
       return () => clearTimeout(timer);
     } else {
       setShowDebouncedError(false);
@@ -144,35 +141,39 @@ function SearchPage() {
 
   return (
     <SearchContainer>
-      {/* When there are no results (or no query), render the combined centered block */}
+      {/* Render the input field always */}
       {!selectedMovie &&
-        (movies.length === 0 || error || fetchError || query.trim() === "") && (
-          <CenteredContent>
-            <InputWrapperTop>
-              <StyledInput
-                type="text"
-                placeholder="Suchbegriff eingeben"
-                value={query}
-                onChange={handleInputChange}
-                onKeyDown={(e) => e.key === " " && e.preventDefault()}
-              />
-            </InputWrapperTop>
-            {/* Show the appropriate message below the input */}
-            {query.trim() === "" ? (
-              <p className="error">Bitte gib einen Suchbegriff ein.</p>
-            ) : (
-              showDebouncedError && (
-                <p className="error">{`Hmm... Wir konnten keine Filme finden für '${query}'.`}</p>
-              )
-            )}
-          </CenteredContent>
-        )}
-
-      {/* When there are results, display the input at the top and the grid below */}
-      {!selectedMovie &&
+      (movies.length === 0 || error || fetchError || query.trim() === "") ? (
+        <CenteredContent>
+          <InputWrapperTop>
+            <StyledInput
+              type="text"
+              placeholder="Suchbegriff eingeben"
+              value={query}
+              onChange={handleInputChange}
+              onKeyDown={(e) => e.key === " " && e.preventDefault()}
+            />
+          </InputWrapperTop>
+          {query.trim() === "" && !isValidating ? (
+            <p className="error">Bitte gib einen Suchbegriff ein.</p>
+          ) : (
+            showDebouncedError && (
+              <p className="error">{`Hmm... Wir konnten keine Filme finden für '${query}'.`}</p>
+            )
+          )}
+          {/* Show spinner while fetching */}
+          {query.trim() !== "" && isValidating && (
+            <SpinnerWrapper>
+              <SquareLoader color="#ffffff" />
+            </SpinnerWrapper>
+          )}
+        </CenteredContent>
+      ) : (
+        !selectedMovie &&
         movies.length > 0 &&
         !(error || fetchError) &&
-        query.trim() !== "" && (
+        query.trim() !== "" &&
+        !isValidating && (
           <>
             <InputWrapperTop>
               <StyledInput
@@ -183,9 +184,19 @@ function SearchPage() {
                 onKeyDown={(e) => e.key === " " && e.preventDefault()}
               />
             </InputWrapperTop>
+            {/* Show spinner under the input when fetching new data */}
+            {isValidating && (
+              <SpinnerWrapper>
+                <SquareLoader color="#ffffff" />
+              </SpinnerWrapper>
+            )}
+
             <ResponseWrapper>
-              <p>{`Suchergebnisse für '${query}'...`}</p>
+              <p>{`${movies.length} ${
+                movies.length === 1 ? "Suchergebnis" : "Suchergebnisse"
+              } für '${query}'...`}</p>
             </ResponseWrapper>
+
             <CardGrid>
               {movies.map((movie: IMovie) => (
                 <MovieCard
@@ -196,7 +207,8 @@ function SearchPage() {
               ))}
             </CardGrid>
           </>
-        )}
+        )
+      )}
 
       {/* Display movie detail when a movie is clicked */}
       {selectedMovie && (
@@ -208,5 +220,4 @@ function SearchPage() {
     </SearchContainer>
   );
 }
-
 export default SearchPage;
