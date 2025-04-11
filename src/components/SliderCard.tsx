@@ -10,7 +10,7 @@ const CardWrapper = styled.div`
   flex-direction: row;
   position: relative;
   border-left: 0.2rem solid white;
-  margin-left: 2vw;
+  margin-left: 1vw;
   cursor: pointer;
 `;
 
@@ -37,7 +37,7 @@ const WatchlistButton = styled.button`
 const InfoWrapper = styled.div`
   display: flex;
   flex-direction: column-reverse;
-  margin-left: 2vw;
+  margin-left: 1vw;
 `;
 
 const MovieTitle = styled.h3`
