@@ -109,32 +109,6 @@ export default function SliderCard(props: Readonly<SliderCardProps>) {
         <People>Regie von {movie.regisseur}</People>
         <MovieYear>{movie.year}</MovieYear>
         <MovieTitle>{movie.title}</MovieTitle>
-        {/* <IconWrapper>
-          {isInWatchlist ? (
-            <WatchlistButton
-              onClick={(e) => {
-                e.stopPropagation();
-                onRemoveFromWatchlist();
-              }}
-            >
-              <Star
-                fill="#FFD700"
-                color="#FFD700"
-                size={55}
-                strokeWidth={1.2}
-              />
-            </WatchlistButton>
-          ) : (
-            <WatchlistButton
-              onClick={(e) => {
-                e.stopPropagation();
-                onAddToWatchlist();
-              }}
-            >
-              <Star color="#FFD700" size={55} strokeWidth={1.2} />
-            </WatchlistButton>
-          )}
-        </IconWrapper> */}
       </InfoWrapper>
     </CardWrapper>
   );
