@@ -1,93 +1,89 @@
 import { useState } from "react";
-import { IMovie } from "@/db/models/Movie";
+import Movie, { IMovie } from "@/db/models/Movie";
 import { customLoader } from "@/lib/constants/constants";
 import Image from "next/image";
-import { useWatchlist } from "@/lib/hooks/useWatchlist";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
-import { Icon, Star, Film } from "lucide-react";
 import styled from "styled-components";
 import movieThumbnail from "/public/movieThumbnail.png";
 
 const CardWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
   position: relative;
-
-  &:hover .hover-info {
-    opacity: 1;
-  }
+  border-left: 0.2rem solid white;
+  margin-left: 1vw;
+  cursor: pointer;
 `;
 
-const HoverInfo = styled.div`
-  position: absolute;
-  bottom: 0;
-  left: 0;
+const ImageContainer = styled.div`
+  position: relative;
   width: 100%;
-  padding: 0.5rem;
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const TitleRow = styled.div`
-  display: flex;
-  justify-content: start;
-  align-items: center;
-  width: 100%;
-`;
-
-const Title = styled.h1`
-  font-size: 1rem;
+  height: 88vh;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  margin: 0;
-  padding: 0.3rem;
-`;
-
-const Year = styled.p`
-  margin-left: auto;
-  padding: 0.3rem;
-  white-space: nowrap;
 `;
 
 const IconWrapper = styled.div`
   position: absolute;
-  top: 20px;
-  right: 20px;
+  margin: 0;
+  padding: 0;
+  right: 17px;
+  z-index: 10;
 `;
 
 const WatchlistButton = styled.button`
   all: unset;
   cursor: pointer;
-  font-size: 1.2rem;
+`;
+
+const InfoWrapper = styled.div`
+  display: flex;
+  flex-direction: column-reverse;
+  margin-left: 1vw;
+`;
+
+const MovieTitle = styled.h3`
+  font-size: 4rem;
+  font-weight: var(--font-weight-light);
+  white-space: nowrap;
+  margin: 0;
+`;
+
+const MovieYear = styled.p`
+  font-size: 3rem;
+  font-weight: var(--font-weight-light);
+  white-space: nowrap;
+  margin: 0;
+`;
+
+const People = styled.p`
+  font-size: 2rem;
+  font-weight: var(--font-weight-light);
+  white-space: nowrap;
+  margin-top: 0;
+  margin-bottom: 0;
 `;
 
 export interface SliderCardProps {
-  key: number;
   movie: IMovie;
+  isInWatchlist: boolean;
   onClick: (movie: IMovie) => void;
+  onAddToWatchlist: () => void;
+  onRemoveFromWatchlist: () => void;
 }
 
 export default function SliderCard(props: Readonly<SliderCardProps>) {
-  const { movie, onClick } = props;
+  const {
+    movie,
+    onClick,
+    isInWatchlist,
+    onAddToWatchlist,
+    onRemoveFromWatchlist,
+  } = props;
 
-  // Watchlist
-  const { data: session } = useSession();
-  const userId = session?.user?.userId; // beachte: custom nextAuth type in types folder that ensures type safety in combination with nextAuth
-  const { isInWatchlist, addToWatchlist, removeFromWatchlist } = useWatchlist(
-    userId,
-    movie._id
-  );
-  const router = useRouter();
-
-  // Image
+  // Choose the best image source or fallback
   const [imgSrc, setImgSrc] = useState(
     movie.imgNetzkino || movie.imgImdb || movieThumbnail
   );
+
   const handleImageError = () => {
     if (movie.imgImdb === "n/a") {
       setImgSrc(movieThumbnail);
@@ -97,42 +93,23 @@ export default function SliderCard(props: Readonly<SliderCardProps>) {
   };
 
   return (
-    <CardWrapper>
-      <IconWrapper>
-        {isInWatchlist ? (
-          <WatchlistButton
-            onClick={() =>
-              removeFromWatchlist(() => {
-                router.replace(router.asPath);
-              })
-            }
-          >
-            <Star fill="#FFD700" color="#FFD700" size={35} strokeWidth={1} />
-          </WatchlistButton>
-        ) : (
-          <WatchlistButton onClick={addToWatchlist}>
-            <Star color="#FFD700" size={35} strokeWidth={1.5} />
-          </WatchlistButton>
-        )}
-      </IconWrapper>
-
-      <HoverInfo className="hover-info">
-        <TitleRow>
-          <Title>{movie.title}</Title>
-          <Year>{movie.year}</Year>
-        </TitleRow>
-      </HoverInfo>
-
-      <div onClick={() => onClick(movie)}>
+    <CardWrapper onClick={() => onClick(movie)}>
+      <ImageContainer>
         <Image
-          loader={customLoader}
           src={imgSrc}
           alt={movie.title}
-          width={450}
-          height={225}
+          loader={customLoader}
+          loading="lazy"
+          fill
+          style={{ objectFit: "cover" }}
           onError={handleImageError}
         />
-      </div>
+      </ImageContainer>
+      <InfoWrapper>
+        <People>Regie von {movie.regisseur}</People>
+        <MovieYear>{movie.year}</MovieYear>
+        <MovieTitle>{movie.title}</MovieTitle>
+      </InfoWrapper>
     </CardWrapper>
   );
 }

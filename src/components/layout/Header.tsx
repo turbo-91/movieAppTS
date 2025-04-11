@@ -11,19 +11,20 @@ const HeaderContainer = styled.div`
   color: white;
   font-weight: 100;
   width: 100%;
+  height: 12vh;
   margin: 0;
   padding: 0;
 `;
 
 const AppTitle = styled.h1`
-  font-size: 3.5rem;
-  font-weight: var(--font-weight-semibold);
+  font-size: 6rem;
+  font-weight: var(--font-weight-light);
   margin: 0;
   padding: 0.7rem;
 `;
 
 const Menu = styled.h3`
-  font-size: 1.2rem;
+  font-size: 1.8rem;
   font-weight: var(--font-weight-light);
   margin-bottom: 0;
   padding: 0.7rem;
@@ -34,7 +35,7 @@ export default function Header() {
 
   return (
     <HeaderContainer>
-      <AppTitle>Movie App</AppTitle>
+      <AppTitle>Film.Finder</AppTitle>
       {!menu && (
         <Menu onClick={() => setMenu((prevMenu) => !prevMenu)}>Menü</Menu>
       )}
