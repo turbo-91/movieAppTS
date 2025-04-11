@@ -53,7 +53,7 @@ export default function Home() {
     slidesToShow: 1,
     autoplay: true,
     pauseOnHover: true,
-    speed: 50000,
+    speed: 30000,
     autoplaySpeed: 1,
     cssEase: "linear",
     lazyload: "ondemand",
