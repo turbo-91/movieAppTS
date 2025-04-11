@@ -11,7 +11,8 @@ export interface IMovie extends Document {
   stars: [string];
   imgNetzkino: string;
   imgNetzkinoSmall: string;
-  imgImdb: string;
+  posterImdb: string;
+  backdropImdb: string;
   queries: string[];
   dateFetched?: string[];
   savedBy?: string[];
@@ -28,7 +29,8 @@ const movieSchema = new Schema<IMovie>({
   overview: { type: String, required: true },
   imgNetzkino: { type: String, required: true },
   imgNetzkinoSmall: { type: String, required: true },
-  imgImdb: { type: String, required: true },
+  posterImdb: { type: String, required: true },
+  backdropImdb: { type: String, required: true },
   queries: { type: [String], required: true },
   dateFetched: { type: String, required: false },
   savedBy: { type: [String], required: false },

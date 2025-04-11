@@ -1,13 +1,18 @@
 import axios from "axios";
 import movieThumbnail from "/public/movieThumbnail.png";
-import { posterUrl } from "@/lib/constants/constants";
+import { imgImdbUrl } from "@/lib/constants/constants";
 import { IMovie } from "@/db/models/Movie";
 
 export async function addImgImdb(movie: IMovie) {
-  if (movie.imgImdb === "n/a") return;
-  const res = await axios.get(movie.imgImdb);
-  const poster = res.data.movie_results?.[0]?.poster_path;
-  movie.imgImdb = poster ? `${posterUrl}${poster}` : movieThumbnail.src;
+  if (movie.posterImdb === "n/a") return;
+  console.log("movie in addImgImdb", movie);
+  const imdbData = await axios.get(movie.posterImdb);
+  const poster = imdbData.data.movie_results?.[0]?.poster_path;
+  const backdrop = imdbData.data.movie_results?.[0]?.backdrop_path;
+  movie.posterImdb = poster ? `${imgImdbUrl}${poster}` : movieThumbnail.src;
+  movie.backdropImdb = backdrop
+    ? `${imgImdbUrl}${backdrop}`
+    : movieThumbnail.src;
   return movie;
 }
 
@@ -21,32 +26,3 @@ export async function enrichMovies(movies: IMovie[]): Promise<IMovie[]> {
 
   return enrichedMovies;
 }
-
-// export async function addImgImdb(movies: IMovie[]) {
-//   await dbConnect();
-//   for (const movie of movies) {
-//     const imdbId = movie.imgImdb;
-//     if (imdbId === "n/a") {
-//       const updatedMovie = await Movie.findByIdAndUpdate(
-//         movie._id,
-//         { imgImdb: movie.imgNetzkino },
-//         { new: true }
-//       );
-//     } else {
-//       try {
-//         const response = await axios.get(imdbId);
-//         const poster = response.data.movie_results?.[0]?.poster_path;
-//         const poster_path = poster
-//           ? `${posterUrl}${poster}`
-//           : movie.imgNetzkino || movieThumbnail.src;
-//         const updatedMovie = await Movie.findByIdAndUpdate(
-//           movie._id,
-//           { imgImdb: poster_path },
-//           { new: true }
-//         );
-//       } catch (error) {
-//         console.error(`Error updating movie ${movie.netzkinoId}:`, error);
-//       }
-//     }
-//   }
-// }

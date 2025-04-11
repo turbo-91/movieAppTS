@@ -31,7 +31,7 @@ export default function MovieDetail({ movie, onBack }: MovieDetailProps) {
 
   // Image
   const [imgSrc, setImgSrc] = useState(
-    movie.imgNetzkino || movie.imgImdb || movieThumbnail
+    movie.imgImdb || movie.imgNetzkino || movieThumbnail
   );
   const handleImageError = () => {
     setImgSrc(movieThumbnail);
