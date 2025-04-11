@@ -52,6 +52,15 @@ const StyledInput = styled.input`
   }
 `;
 
+/* For the state where there are results (input at top) */
+const InputWrapperTop = styled.div`
+  width: 50vw;
+  margin: 1rem auto 0 auto;
+  display: flex;
+  justify-content: center;
+`;
+
+/* For the state where there are no results (input centered in the viewport) */
 const CenteredContent = styled.div`
   display: flex;
   flex-direction: column;
@@ -135,41 +144,59 @@ function SearchPage() {
 
   return (
     <SearchContainer>
-      {/* Always render the input field */}
-      <InputWrapper centered={!query || query.trim() === ""}>
-        <StyledInput
-          type="text"
-          placeholder="Suchbegriff eingeben"
-          value={query}
-          onChange={handleInputChange}
-          onKeyDown={(e) => e.key === " " && e.preventDefault()}
-        />
-      </InputWrapper>
-
-      {/* NO MOVIES FOUND: Only show debounced error message after the delay */}
-      {!selectedMovie && showDebouncedError && query.trim() !== "" && (
-        <CenteredContent>
-          <p className="error">{`Hmm... Wir konnten keine Filme finden für '${query}'.`}</p>
-        </CenteredContent>
-      )}
-
-      {/* Display movies if available */}
-      {!selectedMovie && movies.length > 0 && !(error || fetchError) && (
-        <>
-          <ResponseWrapper>
-            <p>{`Suchergebnisse für '${query}'...`}</p>
-          </ResponseWrapper>
-          <CardGrid>
-            {movies.map((movie: IMovie) => (
-              <MovieCard
-                key={movie._id}
-                onClick={() => setSelectedMovie(movie)}
-                movie={movie}
+      {/* When there are no results (or no query), render the combined centered block */}
+      {!selectedMovie &&
+        (movies.length === 0 || error || fetchError || query.trim() === "") && (
+          <CenteredContent>
+            <InputWrapperTop>
+              <StyledInput
+                type="text"
+                placeholder="Suchbegriff eingeben"
+                value={query}
+                onChange={handleInputChange}
+                onKeyDown={(e) => e.key === " " && e.preventDefault()}
               />
-            ))}
-          </CardGrid>
-        </>
-      )}
+            </InputWrapperTop>
+            {/* Show the appropriate message below the input */}
+            {query.trim() === "" ? (
+              <p className="error">Bitte gib einen Suchbegriff ein.</p>
+            ) : (
+              showDebouncedError && (
+                <p className="error">{`Hmm... Wir konnten keine Filme finden für '${query}'.`}</p>
+              )
+            )}
+          </CenteredContent>
+        )}
+
+      {/* When there are results, display the input at the top and the grid below */}
+      {!selectedMovie &&
+        movies.length > 0 &&
+        !(error || fetchError) &&
+        query.trim() !== "" && (
+          <>
+            <InputWrapperTop>
+              <StyledInput
+                type="text"
+                placeholder="Suchbegriff eingeben"
+                value={query}
+                onChange={handleInputChange}
+                onKeyDown={(e) => e.key === " " && e.preventDefault()}
+              />
+            </InputWrapperTop>
+            <ResponseWrapper>
+              <p>{`Suchergebnisse für '${query}'...`}</p>
+            </ResponseWrapper>
+            <CardGrid>
+              {movies.map((movie: IMovie) => (
+                <MovieCard
+                  key={movie._id}
+                  onClick={() => setSelectedMovie(movie)}
+                  movie={movie}
+                />
+              ))}
+            </CardGrid>
+          </>
+        )}
 
       {/* Display movie detail when a movie is clicked */}
       {selectedMovie && (
@@ -181,4 +208,5 @@ function SearchPage() {
     </SearchContainer>
   );
 }
+
 export default SearchPage;
