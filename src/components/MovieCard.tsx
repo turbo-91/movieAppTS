@@ -87,7 +87,7 @@ export default function MovieCard(props: Readonly<MovieCardProps>) {
 
   // Image
   const [imgSrc, setImgSrc] = useState(
-    movie.imgNetzkino || movie.imgImdb || movieThumbnail
+    movie.imgNetzkino || movie.backdropImdb || movieThumbnail
   );
   const [hasTriedImgImdb, setHasTriedImgImdb] = useState(false);
   const handleImageError = () => {
@@ -100,7 +100,7 @@ export default function MovieCard(props: Readonly<MovieCardProps>) {
     setHasTriedImgImdb(true);
 
     setTimeout(() => {
-      setImgSrc(movie.imgImdb);
+      setImgSrc(movie.backdropImdb);
     }, 1000); // 1 second delay
   };
 

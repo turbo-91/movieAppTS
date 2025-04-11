@@ -5,7 +5,6 @@ import { IMovie } from "@/db/models/Movie";
 
 export async function addImgImdb(movie: IMovie) {
   if (movie.posterImdb === "n/a") return;
-  console.log("movie in addImgImdb", movie);
   const imdbData = await axios.get(movie.posterImdb);
   const poster = imdbData.data.movie_results?.[0]?.poster_path;
   const backdrop = imdbData.data.movie_results?.[0]?.backdrop_path;
