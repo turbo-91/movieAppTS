@@ -6,7 +6,7 @@ const Layout = ({ children }) => {
   return (
     <>
       <Head>
-        <title>MovieApp</title>
+        <title>Film.Finder</title>
       </Head>
       <Header />
       <main>{children}</main>
