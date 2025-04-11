@@ -42,6 +42,14 @@ const StyledInput = styled.input`
   caret-color: transparent;
 `;
 
+const CenteredContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 88vh;
+`;
+
 const ResponseWrapper = styled.div`
   width: 100%;
   /* Force the response text to align left */
@@ -110,9 +118,9 @@ function SearchPage() {
     <SearchContainer>
       {/* NO QUERY */}
       {(!query || query.trim() === "") && (
-        <>
+        <CenteredContent>
           <InputWrapper>
-            <input
+            <StyledInput
               type="text"
               placeholder="Suchbegriff eingeben"
               onChange={handleInputChange}
@@ -120,14 +128,14 @@ function SearchPage() {
             />
           </InputWrapper>
           <p className="error">Bitte gib einen Suchbegriff ein.</p>
-        </>
+        </CenteredContent>
       )}
 
       {/* NO MOVIES FOUND*/}
       {!selectedMovie && (error || fetchError) && (
         <>
           <InputWrapper>
-            <input
+            <StyledInput
               type="text"
               placeholder="Suchbegriff eingeben"
               onChange={handleInputChange}
