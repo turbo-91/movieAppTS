@@ -13,20 +13,49 @@ const SearchContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
 `;
 
 const InputWrapper = styled.div`
+  /* Margin auto centers a fixed-width element */
+  margin: 0 auto;
+  margin-top: 1rem;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 1000px;
+  justify-content: center;
+`;
+
+const StyledInput = styled.input`
+  width: 50vw; /* Set the desired width */
+  padding: 0 1rem;
+  font-size: 1rem;
+  height: 3rem;
+  border: 0.2rem solid white;
+  border-radius: 5rem;
+  background-color: black;
+  color: white;
+  box-shadow: none;
+
+  &::placeholder {
+    color: white;
+    opacity: 1; /* For better visibility in some browsers */
+  }
+
+  caret-color: transparent;
+`;
+
+const ResponseWrapper = styled.div`
+  width: 100%;
+  /* Force the response text to align left */
+  align-self: flex-start;
+  text-align: left;
+  padding: 0 20px;
+  font-weight: var(--font-weight-light);
+  font-size: 1.5rem;
 `;
 
 const CardGrid = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem; /* space between cards */
+  gap: 1rem;
   justify-content: center;
 `;
 
@@ -79,30 +108,52 @@ function SearchPage() {
 
   return (
     <SearchContainer>
-      <InputWrapper>
-        <input
-          type="text"
-          placeholder="Suchbegriff eingeben"
-          onChange={handleInputChange}
-          onKeyDown={(e) => e.key === " " && e.preventDefault()} // space not allowed in input
-        />
-      </InputWrapper>
-
-      {/* 
-      {/* DISPLAY NO MOVIES FOUND AS DEFAULT */}
-      {!selectedMovie && (error || fetchError || movies.length === 0) && (
-        <p className="error">No movies found.</p>
+      {/* NO QUERY */}
+      {(!query || query.trim() === "") && (
+        <>
+          <InputWrapper>
+            <input
+              type="text"
+              placeholder="Suchbegriff eingeben"
+              onChange={handleInputChange}
+              onKeyDown={(e) => e.key === " " && e.preventDefault()} // space not allowed in input
+            />
+          </InputWrapper>
+          <p className="error">Bitte gib einen Suchbegriff ein.</p>
+        </>
       )}
 
-      {/* DISPLAY MOVIE DETAIL IF A MOVIE IS SELECTED */}
-      {selectedMovie ? (
-        <MovieDetail
-          movie={selectedMovie}
-          onBack={() => setSelectedMovie(null)}
-        />
-      ) : (
+      {/* NO MOVIES FOUND*/}
+      {!selectedMovie && (error || fetchError) && (
         <>
-          {/* DISPLAY PAGINATED MOVIE LIST */}
+          <InputWrapper>
+            <input
+              type="text"
+              placeholder="Suchbegriff eingeben"
+              onChange={handleInputChange}
+              onKeyDown={(e) => e.key === " " && e.preventDefault()} // space not allowed in input
+            />
+          </InputWrapper>
+          <p className="error">
+            {`Hmm... Wir konnten keine Filme finden für '${query}'.`}
+          </p>
+        </>
+      )}
+
+      {/* DISPLAY MOVIES */}
+      {movies.length > 0 && !(error || fetchError) && (
+        <>
+          <InputWrapper>
+            <StyledInput
+              type="text"
+              placeholder="Suchbegriff eingeben"
+              onChange={handleInputChange}
+              onKeyDown={(e) => e.key === " " && e.preventDefault()} // space not allowed in input
+            />
+          </InputWrapper>
+          <ResponseWrapper>
+            <p>{`Suchergebnisse für '${query}'...`}</p>
+          </ResponseWrapper>
           <CardGrid>
             {movies.map((movie: IMovie) => (
               <MovieCard
@@ -113,6 +164,14 @@ function SearchPage() {
             ))}
           </CardGrid>
         </>
+      )}
+
+      {/* DISPLAY MOVIE DETAIL IF A MOVIE IS CLICKED */}
+      {selectedMovie && (
+        <MovieDetail
+          movie={selectedMovie}
+          onBack={() => setSelectedMovie(null)}
+        />
       )}
     </SearchContainer>
   );
