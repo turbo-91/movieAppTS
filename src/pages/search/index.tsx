@@ -9,16 +9,20 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import styled from "styled-components";
 
+interface InputWrapperProps {
+  centered?: boolean;
+}
+
 const SearchContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
 `;
 
-const InputWrapper = styled.div`
-  /* Margin auto centers a fixed-width element */
-  margin: 0 auto;
-  margin-top: 1rem;
+const InputWrapper = styled.div<InputWrapperProps>`
+  width: 50vw;
+  margin: ${({ centered }) =>
+    centered ? "calc((88vh - 3rem) / 2)" : "1rem auto 0 auto"};
   display: flex;
   justify-content: center;
 `;
@@ -36,10 +40,16 @@ const StyledInput = styled.input`
 
   &::placeholder {
     color: white;
-    opacity: 1; /* For better visibility in some browsers */
+    opacity: 1;
   }
 
-  caret-color: transparent;
+  &:focus::placeholder {
+    opacity: 0;
+  }
+
+  &:focus {
+    outline: none;
+  }
 `;
 
 const CenteredContent = styled.div`
@@ -71,10 +81,7 @@ function SearchPage() {
   const [query, setQuery] = useState("");
   const [error, setError] = useState("");
   const [selectedMovie, setSelectedMovie] = useState<IMovie | null>(null);
-
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 24;
+  const [showDebouncedError, setShowDebouncedError] = useState(false);
 
   // Debounce the query with 700ms delay
   const [debouncedQuery] = useDebounce(query, 700);
@@ -100,6 +107,18 @@ function SearchPage() {
     console.log(movies);
   }, [movies]);
 
+  // Debounce the no movies found message
+  useEffect(() => {
+    if ((error || fetchError) && query.trim() !== "") {
+      const timer = setTimeout(() => {
+        setShowDebouncedError(true);
+      }, 800); // Adjust the debounce delay (ms) as desired
+      return () => clearTimeout(timer);
+    } else {
+      setShowDebouncedError(false);
+    }
+  }, [error, fetchError, query]);
+
   // Route Protection
 
   const { data: session, status } = useSession();
@@ -116,49 +135,27 @@ function SearchPage() {
 
   return (
     <SearchContainer>
-      {/* NO QUERY */}
-      {(!query || query.trim() === "") && (
+      {/* Always render the input field */}
+      <InputWrapper centered={!query || query.trim() === ""}>
+        <StyledInput
+          type="text"
+          placeholder="Suchbegriff eingeben"
+          value={query}
+          onChange={handleInputChange}
+          onKeyDown={(e) => e.key === " " && e.preventDefault()}
+        />
+      </InputWrapper>
+
+      {/* NO MOVIES FOUND: Only show debounced error message after the delay */}
+      {!selectedMovie && showDebouncedError && query.trim() !== "" && (
         <CenteredContent>
-          <InputWrapper>
-            <StyledInput
-              type="text"
-              placeholder="Suchbegriff eingeben"
-              onChange={handleInputChange}
-              onKeyDown={(e) => e.key === " " && e.preventDefault()} // space not allowed in input
-            />
-          </InputWrapper>
-          <p className="error">Bitte gib einen Suchbegriff ein.</p>
+          <p className="error">{`Hmm... Wir konnten keine Filme finden für '${query}'.`}</p>
         </CenteredContent>
       )}
 
-      {/* NO MOVIES FOUND*/}
-      {!selectedMovie && (error || fetchError) && (
+      {/* Display movies if available */}
+      {!selectedMovie && movies.length > 0 && !(error || fetchError) && (
         <>
-          <InputWrapper>
-            <StyledInput
-              type="text"
-              placeholder="Suchbegriff eingeben"
-              onChange={handleInputChange}
-              onKeyDown={(e) => e.key === " " && e.preventDefault()} // space not allowed in input
-            />
-          </InputWrapper>
-          <p className="error">
-            {`Hmm... Wir konnten keine Filme finden für '${query}'.`}
-          </p>
-        </>
-      )}
-
-      {/* DISPLAY MOVIES */}
-      {movies.length > 0 && !(error || fetchError) && (
-        <>
-          <InputWrapper>
-            <StyledInput
-              type="text"
-              placeholder="Suchbegriff eingeben"
-              onChange={handleInputChange}
-              onKeyDown={(e) => e.key === " " && e.preventDefault()} // space not allowed in input
-            />
-          </InputWrapper>
           <ResponseWrapper>
             <p>{`Suchergebnisse für '${query}'...`}</p>
           </ResponseWrapper>
@@ -174,7 +171,7 @@ function SearchPage() {
         </>
       )}
 
-      {/* DISPLAY MOVIE DETAIL IF A MOVIE IS CLICKED */}
+      {/* Display movie detail when a movie is clicked */}
       {selectedMovie && (
         <MovieDetail
           movie={selectedMovie}
@@ -184,5 +181,4 @@ function SearchPage() {
     </SearchContainer>
   );
 }
-
 export default SearchPage;
