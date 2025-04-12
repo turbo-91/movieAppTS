@@ -8,7 +8,6 @@ import { useRouter } from "next/router";
 import { Icon, Star, Film } from "lucide-react";
 import styled from "styled-components";
 import movieThumbnail from "/public/movieThumbnail.png";
-import { useEffect } from "react";
 
 const CardWrapper = styled.div`
   position: relative;
@@ -41,7 +40,8 @@ const TitleRow = styled.div`
 `;
 
 const Title = styled.h1`
-  font-size: 1rem;
+  font-size: 1.3rem;
+  font-weight: var(--font-weight-light);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
