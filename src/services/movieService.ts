@@ -7,11 +7,6 @@ import { fetchMoviesFromNetzkino } from "./netzkinoFetcher";
 import { postMovies } from "./movieDB";
 import { addImgImdb, enrichMovies } from "./imdbService";
 import Bottleneck from "bottleneck";
-import movieThumbnail from "/public/movieThumbnail.png";
-import { v4 as uuidv4 } from "uuid";
-import { runImgTask } from "@/lib/imdbTaskRunner";
-import TaskStatus from "@/db/models/TaskStatus";
-import moviesDayHandler from "@/pages/api/moviesoftheday";
 
 // Fetches movies of the day from Netzkino API, caches them in the database,
 // and fetches additional image from ImdB.
@@ -77,8 +72,8 @@ export async function getSearchMovies(query: string) {
     );
     if (!movies.length) return [];
     await postQuery(query);
-    await enrichMovies(movies);
+    const enrichedMovies = await enrichMovies(movies);
     postMovies(movies);
-    return movies;
+    return enrichedMovies;
   }
 }
