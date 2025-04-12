@@ -1,7 +1,8 @@
 import React from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signIn, signOut } from "next-auth/react";
 import { useRouter } from "next/router";
 import styled from "styled-components";
+import { IMovie } from "@/db/models/Movie";
 
 const NavContainer = styled.nav`
   display: flex;
@@ -26,16 +27,20 @@ const CloseButton = styled.button`
 `;
 
 export interface NavBarProps {
-  menu: boolean;
   setMenu: (value: boolean) => void;
+  setSelectedMovie: (movie: IMovie | null) => void;
 }
 
-export default function NavBar({ menu, setMenu }: Readonly<NavBarProps>) {
+export default function NavBar({
+  setMenu,
+  setSelectedMovie,
+}: Readonly<NavBarProps>) {
   const { data: session, status } = useSession();
   const router = useRouter();
 
   const handleNav = (path: string) => {
     setMenu(false);
+    setSelectedMovie(null);
     router.push(path);
   };
 
@@ -43,9 +48,19 @@ export default function NavBar({ menu, setMenu }: Readonly<NavBarProps>) {
     <NavContainer>
       <NavButton onClick={() => handleNav("/")}>Home</NavButton>
       {status === "authenticated" && (
-        <NavButton onClick={() => handleNav("/search")}>Suche</NavButton>
+        <>
+          <NavButton onClick={() => handleNav("/search")}>Suche</NavButton>
+          <NavButton onClick={() => handleNav("/watchlist")}>
+            Watchlist
+          </NavButton>
+          <CloseButton onClick={() => signOut({ callbackUrl: "/" })}>
+            Logout
+          </CloseButton>
+        </>
       )}
-      <NavButton onClick={() => handleNav("/login")}>Login</NavButton>
+      {status === "unauthenticated" && (
+        <NavButton onClick={() => signIn("github")}>Login</NavButton>
+      )}
       <CloseButton onClick={() => setMenu(false)}>schließen</CloseButton>
     </NavContainer>
   );
