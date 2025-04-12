@@ -80,16 +80,11 @@ function SearchPage(props: Readonly<SearchProps>) {
   const { setSelectedMovie, selectedMovie } = props;
   const [query, setQuery] = useState("");
   const [error, setError] = useState("");
-  const [showDebouncedError, setShowDebouncedError] = useState(false);
 
   // Debounce the query with 700ms delay
   const [debouncedQuery] = useDebounce(query, 1200);
 
-  const {
-    data: movies = [],
-    error: fetchError,
-    isValidating,
-  } = useSWR(
+  const { data: movies = [], isValidating } = useSWR(
     query ? `/api/movies/search?query=${debouncedQuery}` : null,
     fetcher,
     { dedupingInterval: 700 }
@@ -105,22 +100,6 @@ function SearchPage(props: Readonly<SearchProps>) {
       setError("Only lowercase letters (a-z) are allowed.");
     }
   };
-
-  useEffect(() => {
-    console.log(movies);
-  }, [movies]);
-
-  // Debounce the no movies found message
-  useEffect(() => {
-    if ((error || fetchError) && query.trim() !== "") {
-      const timer = setTimeout(() => {
-        setShowDebouncedError(true);
-      }, 1200); // Adjust the debounce delay (ms) as desired
-      return () => clearTimeout(timer);
-    } else {
-      setShowDebouncedError(false);
-    }
-  }, [error, fetchError, query]);
 
   const isDebouncing = query.trim() !== "" && query !== debouncedQuery;
 
@@ -147,6 +126,7 @@ function SearchPage(props: Readonly<SearchProps>) {
       {/* Always render the input on top */}
       <InputWrapperTop>
         <StyledInput
+          name="Search Input"
           type="text"
           placeholder=""
           value={query}
@@ -158,15 +138,13 @@ function SearchPage(props: Readonly<SearchProps>) {
       {!selectedMovie ? (
         <>
           {query.trim() === "" ? (
-            <p className="error">Bitte gib einen Suchbegriff ein.</p>
+            <p>Bitte gib einen Suchbegriff ein.</p>
           ) : isDebouncing || isValidating ? (
             <SpinnerWrapper>
               <SquareLoader color="#ffffff" size={20} />
             </SpinnerWrapper>
-          ) : showDebouncedError ? (
-            <p className="error">
-              {`Hmm... Wir konnten keine Filme finden für '${query}'.`}
-            </p>
+          ) : movies.results?.length === 0 ? (
+            <p>{`Hmm... Wir konnten keine Filme finden für '${query}'.`}</p>
           ) : movies.length > 0 ? (
             <>
               <ResponseWrapper>
