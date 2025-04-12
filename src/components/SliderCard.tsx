@@ -21,19 +21,6 @@ const ImageContainer = styled.div`
   overflow: hidden;
 `;
 
-const IconWrapper = styled.div`
-  position: absolute;
-  margin: 0;
-  padding: 0;
-  right: 17px;
-  z-index: 10;
-`;
-
-const WatchlistButton = styled.button`
-  all: unset;
-  cursor: pointer;
-`;
-
 const InfoWrapper = styled.div`
   display: flex;
   flex-direction: column-reverse;
@@ -43,7 +30,8 @@ const InfoWrapper = styled.div`
 const MovieTitle = styled.h3`
   font-size: 4rem;
   font-weight: var(--font-weight-light);
-  white-space: nowrap;
+  white-space: normal; /* Allow wrapping */
+  overflow-wrap: break-word; /* Break long words if necessary */
   margin: 0;
 `;
 
@@ -71,24 +59,18 @@ export interface SliderCardProps {
 }
 
 export default function SliderCard(props: Readonly<SliderCardProps>) {
-  const {
-    movie,
-    onClick,
-    isInWatchlist,
-    onAddToWatchlist,
-    onRemoveFromWatchlist,
-  } = props;
+  const { movie, onClick } = props;
 
   // Choose the best image source or fallback
   const [imgSrc, setImgSrc] = useState(
-    movie.imgNetzkino || movie.imgImdb || movieThumbnail
+    movie.imgNetzkino || movie.backdropImdb || movieThumbnail
   );
 
   const handleImageError = () => {
-    if (movie.imgImdb === "n/a") {
+    if (movie.backdropImdb === "n/a") {
       setImgSrc(movieThumbnail);
     } else {
-      setImgSrc(movie.imgImdb || movieThumbnail);
+      setImgSrc(movie.backdropImdb || movieThumbnail);
     }
   };
 
