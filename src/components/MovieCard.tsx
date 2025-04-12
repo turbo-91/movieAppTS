@@ -79,10 +79,8 @@ export default function MovieCard(props: Readonly<MovieCardProps>) {
   // Watchlist
   const { data: session } = useSession();
   const userId = session?.user?.userId; // beachte: custom nextAuth type in types folder that ensures type safety in combination with nextAuth
-  const { isInWatchlist, addToWatchlist, removeFromWatchlist } = useWatchlist(
-    userId,
-    movie._id
-  );
+  const { isInWatchlist, addToWatchlist, removeFromWatchlist } =
+    useWatchlist(userId);
   const router = useRouter();
 
   // Image
@@ -107,18 +105,18 @@ export default function MovieCard(props: Readonly<MovieCardProps>) {
   return (
     <CardWrapper>
       <IconWrapper>
-        {isInWatchlist ? (
+        {isInWatchlist(movie._id) ? (
           <WatchlistButton
-            onClick={() =>
-              removeFromWatchlist(() => {
-                router.replace(router.asPath);
-              })
-            }
+            onClick={() => {
+              removeFromWatchlist(movie._id);
+              // Optionally refresh the current route if needed:
+              router.replace(router.asPath);
+            }}
           >
             <Star fill="#FFD700" color="#FFD700" size={35} strokeWidth={1} />
           </WatchlistButton>
         ) : (
-          <WatchlistButton onClick={addToWatchlist}>
+          <WatchlistButton onClick={() => addToWatchlist(movie._id)}>
             <Star color="#FFD700" size={35} strokeWidth={1.5} />
           </WatchlistButton>
         )}
