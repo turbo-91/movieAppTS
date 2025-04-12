@@ -9,11 +9,16 @@ import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useWatchlist } from "@/lib/hooks/useWatchlist";
 
-export default function Home() {
+export interface HomeProps {
+  selectedMovie: IMovie | null;
+  setSelectedMovie: (movie: IMovie | null) => void;
+}
+
+export default function Home(props: Readonly<HomeProps>) {
+  const { setSelectedMovie, selectedMovie } = props;
   const [movies, setMovies] = useState<IMovie[]>([]);
   const [error, setError] = useState<Error | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedMovie, setSelectedMovie] = useState<IMovie | null>(null);
 
   const { data: session } = useSession();
   const userId = session?.user?.userId;

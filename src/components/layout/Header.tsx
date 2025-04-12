@@ -11,9 +11,8 @@ const HeaderContainer = styled.div`
   color: white;
   font-weight: 100;
   width: 100%;
-  height: 12vh;
-  margin: 0;
-  padding: 0;
+  height: 15vh;
+  margin-top: 2vh;
 `;
 
 const AppTitle = styled.h1`

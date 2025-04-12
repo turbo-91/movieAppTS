@@ -14,6 +14,7 @@ const SearchContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin-bottom: 0;
 `;
 
 const StyledInput = styled.input`
@@ -79,10 +80,15 @@ const SpinnerWrapper = styled.div`
   justify-content: center;
 `;
 
-function SearchPage() {
+export interface SearchProps {
+  selectedMovie: IMovie | null;
+  setSelectedMovie: (movie: IMovie | null) => void;
+}
+
+function SearchPage(props: Readonly<SearchProps>) {
+  const { setSelectedMovie, selectedMovie } = props;
   const [query, setQuery] = useState("");
   const [error, setError] = useState("");
-  const [selectedMovie, setSelectedMovie] = useState<IMovie | null>(null);
   const [showDebouncedError, setShowDebouncedError] = useState(false);
 
   // Debounce the query with 700ms delay

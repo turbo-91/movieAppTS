@@ -10,6 +10,7 @@ const GlobalStyle = createGlobalStyle`
   :root {
   font-size: 16px;
     --font-family: ${notoSans.style.fontFamily};
+    --font-weight-ultralight: 200;
     --font-weight-light: 300;
     --font-weight-regular: 400;
     --font-weight-medium: 500;
