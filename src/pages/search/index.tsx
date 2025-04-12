@@ -79,6 +79,10 @@ const SpinnerWrapper = styled.div`
   justify-content: center;
 `;
 
+const Blocker = styled.div`
+  color: white;
+`;
+
 export interface SearchProps {
   selectedMovie: IMovie | null;
   setSelectedMovie: (movie: IMovie | null) => void;
@@ -130,6 +134,8 @@ function SearchPage(props: Readonly<SearchProps>) {
     }
   }, [error, fetchError, query]);
 
+  const isDebouncing = query.trim() !== "" && query !== debouncedQuery;
+
   // Route Protection
 
   const { data: session, status } = useSession();
@@ -146,77 +152,49 @@ function SearchPage(props: Readonly<SearchProps>) {
 
   return (
     <SearchContainer>
-      {/* Render the input field always */}
-      {!selectedMovie &&
-      (movies.length === 0 || error || fetchError || query.trim() === "") ? (
-        <CenteredContent>
-          <InputWrapperTop>
-            <StyledInput
-              type="text"
-              placeholder=""
-              value={query}
-              onChange={handleInputChange}
-              onKeyDown={(e) => e.key === " " && e.preventDefault()}
-            />
-          </InputWrapperTop>
-          {query.trim() === "" && !isValidating ? (
+      {/* Always render the input on top */}
+      <InputWrapperTop>
+        <StyledInput
+          type="text"
+          placeholder=""
+          value={query}
+          onChange={handleInputChange}
+          onKeyDown={(e) => e.key === " " && e.preventDefault()}
+        />
+      </InputWrapperTop>
+
+      {!selectedMovie ? (
+        <>
+          {query.trim() === "" ? (
             <p className="error">Bitte gib einen Suchbegriff ein.</p>
-          ) : (
-            showDebouncedError && (
-              <p className="error">{`Hmm... Wir konnten keine Filme finden für '${query}'.`}</p>
-            )
-          )}
-          {/* Show spinner while fetching */}
-          {query.trim() !== "" && isValidating && (
+          ) : isDebouncing || isValidating ? (
             <SpinnerWrapper>
-              <SquareLoader color="#ffffff" />
+              <SquareLoader color="#ffffff" size={20} />
             </SpinnerWrapper>
-          )}
-        </CenteredContent>
+          ) : showDebouncedError ? (
+            <p className="error">
+              {`Hmm... Wir konnten keine Filme finden für '${query}'.`}
+            </p>
+          ) : movies.length > 0 ? (
+            <>
+              <ResponseWrapper>
+                <p>{`${movies.length} ${
+                  movies.length === 1 ? "Suchergebnis" : "Suchergebnisse"
+                } für '${query}'...`}</p>
+              </ResponseWrapper>
+              <CardGrid>
+                {movies.map((movie: IMovie) => (
+                  <MovieCard
+                    key={movie._id}
+                    onClick={() => setSelectedMovie(movie)}
+                    movie={movie}
+                  />
+                ))}
+              </CardGrid>
+            </>
+          ) : null}
+        </>
       ) : (
-        !selectedMovie &&
-        movies.length > 0 &&
-        !(error || fetchError) &&
-        query.trim() !== "" &&
-        !isValidating && (
-          <>
-            <InputWrapperTop>
-              <StyledInput
-                type="text"
-                placeholder="Suchbegriff eingeben"
-                value={query}
-                onChange={handleInputChange}
-                onKeyDown={(e) => e.key === " " && e.preventDefault()}
-              />
-            </InputWrapperTop>
-            {/* Show spinner under the input when fetching new data */}
-            {isValidating && (
-              <SpinnerWrapper>
-                <SquareLoader color="#ffffff" />
-              </SpinnerWrapper>
-            )}
-
-            <ResponseWrapper>
-              <p>{`${movies.length} ${
-                movies.length === 1 ? "Suchergebnis" : "Suchergebnisse"
-              } für '${query}'...`}</p>
-            </ResponseWrapper>
-
-            <CardGrid>
-              {movies.map((movie: IMovie) => (
-                <MovieCard
-                  key={movie._id}
-                  onClick={() => setSelectedMovie(movie)}
-                  movie={movie}
-                />
-              ))}
-            </CardGrid>
-          </>
-        )
-      )}
-
-      {/* Display movie detail when a movie is clicked */}
-      {selectedMovie && (
         <MovieDetail
           movie={selectedMovie}
           onBack={() => setSelectedMovie(null)}
