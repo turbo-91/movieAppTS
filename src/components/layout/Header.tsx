@@ -2,6 +2,7 @@ import React from "react";
 import { useState } from "react";
 import NavBar from "./NavBar";
 import styled from "styled-components";
+import { IMovie } from "@/db/models/Movie";
 
 const HeaderContainer = styled.div`
   display: flex;
@@ -29,7 +30,12 @@ const Menu = styled.h3`
   padding: 0.7rem;
 `;
 
-export default function Header() {
+export interface HeaderProps {
+  setSelectedMovie: (movie: IMovie | null) => void;
+}
+
+export default function Header(props: Readonly<HeaderProps>) {
+  const { setSelectedMovie } = props;
   const [menu, setMenu] = useState<boolean>(false);
 
   return (
@@ -38,7 +44,7 @@ export default function Header() {
       {!menu && (
         <Menu onClick={() => setMenu((prevMenu) => !prevMenu)}>Menü</Menu>
       )}
-      {menu && <NavBar menu={menu} setMenu={setMenu} />}
+      {menu && <NavBar setSelectedMovie={setSelectedMovie} setMenu={setMenu} />}
     </HeaderContainer>
   );
 }
