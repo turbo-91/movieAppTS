@@ -5,6 +5,7 @@ import { postQuery } from "./queryService";
 import movieThumbnail from "/public/movieThumbnail.png";
 import { NetzkinoMovie } from "@/types/NetzkinoMovie";
 import getApiLink from "@/lib/getApiLink";
+import starSanitizer from "@/lib/starSanitizer";
 
 export async function fetchMoviesFromNetzkino(
   query: string
@@ -28,6 +29,8 @@ export async function fetchMoviesFromNetzkino(
     return response.data.posts.map((movie: NetzkinoMovie) => {
       const imdbLink = movie.custom_fields?.["IMDb-Link"]?.[0];
       const imdbApiLink = imdbLink ? getApiLink(imdbLink) : null;
+      const stars = movie.custom_fields?.["Stars"]?.[0];
+      const sanitizedStars = starSanitizer(stars);
 
       return {
         _id: movie.id ?? null, // Ensure _id exists or set to null
@@ -36,7 +39,7 @@ export async function fetchMoviesFromNetzkino(
         title: movie.title ?? "Untitled",
         year: movie.custom_fields?.Jahr || ["n/a"],
         regisseur: movie.custom_fields?.Regisseur || ["n/a"],
-        stars: movie.custom_fields?.Stars || ["n/a"],
+        stars: sanitizedStars || ["n/a"],
         overview: movie.content || "n/a",
         imgNetzkino: movie.custom_fields?.featured_img_all?.[0] || fallbackImg,
         imgNetzkinoSmall:
