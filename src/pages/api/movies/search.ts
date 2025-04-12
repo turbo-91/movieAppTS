@@ -18,7 +18,8 @@ export default async function getSearchResults(
     const movies = await getSearchMovies(query);
 
     if (!movies || movies.length === 0) {
-      return res.status(404).json({ status: "Not Found" });
+      console.log("no movies´", movies);
+      return res.status(200).json({ results: [], message: "No movies found" });
     }
 
     return res.status(200).json(movies);
