@@ -28,6 +28,7 @@ const Menu = styled.h3`
   font-weight: var(--font-weight-light);
   margin-bottom: 0;
   padding: 0.7rem;
+  cursor: pointer;
 `;
 
 export interface HeaderProps {

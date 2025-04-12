@@ -59,7 +59,6 @@ const CenteredContent = styled.div`
 
 const ResponseWrapper = styled.div`
   width: 100%;
-  /* Force the response text to align left */
   align-self: flex-start;
   text-align: left;
   padding: 0 20px;
@@ -154,7 +153,7 @@ function SearchPage(props: Readonly<SearchProps>) {
           <InputWrapperTop>
             <StyledInput
               type="text"
-              placeholder="Suchbegriff eingeben"
+              placeholder=""
               value={query}
               onChange={handleInputChange}
               onKeyDown={(e) => e.key === " " && e.preventDefault()}
