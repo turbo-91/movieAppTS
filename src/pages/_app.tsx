@@ -14,7 +14,7 @@ export default function App({
   return (
     <SessionProvider session={session}>
       <GlobalStyle />
-      <Layout>
+      <Layout setSelectedMovie={setSelectedMovie}>
         <Component
           {...pageProps}
           selectedMovie={selectedMovie}

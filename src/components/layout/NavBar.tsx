@@ -2,6 +2,7 @@ import React from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import styled from "styled-components";
+import { IMovie } from "@/db/models/Movie";
 
 const NavContainer = styled.nav`
   display: flex;
@@ -26,16 +27,20 @@ const CloseButton = styled.button`
 `;
 
 export interface NavBarProps {
-  menu: boolean;
   setMenu: (value: boolean) => void;
+  setSelectedMovie: (movie: IMovie | null) => void;
 }
 
-export default function NavBar({ menu, setMenu }: Readonly<NavBarProps>) {
+export default function NavBar({
+  setMenu,
+  setSelectedMovie,
+}: Readonly<NavBarProps>) {
   const { data: session, status } = useSession();
   const router = useRouter();
 
   const handleNav = (path: string) => {
     setMenu(false);
+    setSelectedMovie(null);
     router.push(path);
   };
 
