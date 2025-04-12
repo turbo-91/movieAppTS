@@ -7,12 +7,12 @@ import { IMovie } from "@/db/models/Movie";
 import { useWatchlist } from "@/lib/hooks/useWatchlist";
 import MovieDetail from "@/components/MovieDetail";
 
-export interface LoginProps {
+export interface WatchlistProps {
   selectedMovie: IMovie | null;
   setSelectedMovie: (movie: IMovie | null) => void;
 }
 
-function Login(props: Readonly<LoginProps>) {
+function Watchlist(props: Readonly<WatchlistProps>) {
   const { setSelectedMovie, selectedMovie } = props;
   const { data: session } = useSession();
   const userName = session?.user?.name || "user";
@@ -75,4 +75,4 @@ function Login(props: Readonly<LoginProps>) {
   );
 }
 
-export default Login;
+export default Watchlist;
