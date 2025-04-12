@@ -49,14 +49,6 @@ const InputWrapperTop = styled.div`
   justify-content: center;
 `;
 
-const CenteredContent = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 88vh;
-`;
-
 const ResponseWrapper = styled.div`
   width: 100%;
   align-self: flex-start;
@@ -77,10 +69,6 @@ const SpinnerWrapper = styled.div`
   margin-top: 1rem;
   display: flex;
   justify-content: center;
-`;
-
-const Blocker = styled.div`
-  color: white;
 `;
 
 export interface SearchProps {
@@ -142,7 +130,11 @@ function SearchPage(props: Readonly<SearchProps>) {
   const router = useRouter();
 
   if (status === "loading") {
-    return <p>Loading...</p>;
+    return (
+      <SpinnerWrapper>
+        <SquareLoader color="#ffffff" size={20} />
+      </SpinnerWrapper>
+    );
   }
 
   // Redirect to login if not authenticated

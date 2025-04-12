@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useWatchlist } from "@/lib/hooks/useWatchlist";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { Icon, Star, Film } from "lucide-react";
+import { Star } from "lucide-react";
 import styled from "styled-components";
 import movieThumbnail from "/public/movieThumbnail.png";
 

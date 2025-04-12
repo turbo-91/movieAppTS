@@ -8,11 +8,19 @@ import MovieDetail from "@/components/MovieDetail";
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useWatchlist } from "@/lib/hooks/useWatchlist";
+import { SquareLoader } from "react-spinners";
+import styled from "styled-components";
 
 export interface HomeProps {
   selectedMovie: IMovie | null;
   setSelectedMovie: (movie: IMovie | null) => void;
 }
+
+const SpinnerWrapper = styled.div`
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+`;
 
 export default function Home(props: Readonly<HomeProps>) {
   const { setSelectedMovie, selectedMovie } = props;
@@ -64,7 +72,12 @@ export default function Home(props: Readonly<HomeProps>) {
     lazyload: "ondemand",
   };
 
-  if (isLoading) return <p>... loading</p>;
+  if (isLoading)
+    return (
+      <SpinnerWrapper>
+        <SquareLoader color="#ffffff" size={20} />
+      </SpinnerWrapper>
+    );
   if (error) console.log(error.message);
   if (!movies.length && error) return <p>No movies found.</p>;
 

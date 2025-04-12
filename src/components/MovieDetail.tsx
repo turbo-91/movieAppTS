@@ -7,6 +7,7 @@ import { useWatchlist } from "@/lib/hooks/useWatchlist";
 import { customLoader } from "@/lib/constants/constants";
 import movieThumbnail from "/public/movieThumbnail.png";
 import styled from "styled-components";
+import { Star } from "lucide-react";
 
 interface MovieDetailProps {
   movie: IMovie;
@@ -92,7 +93,7 @@ const Info = styled.p`
 
 const OverviewText = styled.p<{ expanded: boolean }>`
   --line-height: 1.2;
-  --lines-shown: 4;
+  --lines-shown: 3;
   font-size: clamp(0.4rem, 1vw, 0.9rem);
   line-height: var(--line-height);
   text-align: left;
@@ -122,14 +123,25 @@ const ToggleButton = styled.button`
   }
 `;
 
+const IconWrapper = styled.div`
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+`;
+
+const WatchlistButton = styled.button`
+  all: unset;
+  cursor: pointer;
+  font-size: 1.2rem;
+`;
+
 export default function MovieDetail({ movie, onBack }: MovieDetailProps) {
   // Session and Watchlist
   const { data: session } = useSession();
   const userId = session?.user?.userId; // custom nextAuth type in types folder ensures type safety
-  const { isInWatchlist, addToWatchlist, removeFromWatchlist } = useWatchlist(
-    userId,
-    movie._id
-  );
+  const { isInWatchlist, addToWatchlist, removeFromWatchlist } =
+    useWatchlist(userId);
   const router = useRouter();
 
   // Image
@@ -153,6 +165,28 @@ export default function MovieDetail({ movie, onBack }: MovieDetailProps) {
     <DetailContainer>
       <UnitContainer>
         <ImageContainer>
+          <IconWrapper>
+            {isInWatchlist(movie._id) ? (
+              <WatchlistButton
+                onClick={() => {
+                  removeFromWatchlist(movie._id);
+                  // Optionally refresh the current route if needed:
+                  router.replace(router.asPath);
+                }}
+              >
+                <Star
+                  fill="#FFD700"
+                  color="#FFD700"
+                  size={35}
+                  strokeWidth={1}
+                />
+              </WatchlistButton>
+            ) : (
+              <WatchlistButton onClick={() => addToWatchlist(movie._id)}>
+                <Star color="#FFD700" size={35} strokeWidth={1.5} />
+              </WatchlistButton>
+            )}
+          </IconWrapper>
           <Image
             loader={customLoader}
             src={imgSrc}
@@ -180,20 +214,6 @@ export default function MovieDetail({ movie, onBack }: MovieDetailProps) {
           <BackButton onClick={onBack}>← Zurück</BackButton>
         </ContentContainer>
       </UnitContainer>
-      {/* Uncomment below for watchlist functionality if needed:
-      {isInWatchlist ? (
-        <button
-          onClick={() =>
-            removeFromWatchlist(() => {
-              router.replace(router.asPath);
-            })
-          }
-        >
-          Remove from Watchlist
-        </button>
-      ) : (
-        <button onClick={addToWatchlist}>Add to Watchlist</button>
-      )} */}
     </DetailContainer>
   );
 }
