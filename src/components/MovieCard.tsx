@@ -11,6 +11,7 @@ import movieThumbnail from "/public/movieThumbnail.png";
 
 const CardWrapper = styled.div`
   position: relative;
+  cursor: pointer;
 
   &:hover .hover-info {
     opacity: 1;
@@ -23,7 +24,7 @@ const HoverInfo = styled.div`
   left: 0;
   width: 100%;
   padding: 0.5rem;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.6);g
   color: white;
   opacity: 0;
   transition: opacity 0.3s ease;
