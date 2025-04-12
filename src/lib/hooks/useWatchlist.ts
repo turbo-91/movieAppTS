@@ -44,8 +44,19 @@ export const useWatchlist = (userId?: string) => {
     }
   };
 
+  function isInWatchlist(movieId: number): boolean {
+    if (watchlist) {
+      return watchlist.some(function (movie: IMovie) {
+        return movie._id === movieId;
+      });
+    } else {
+      return false;
+    }
+  }
+
   return {
     watchlist,
+    isInWatchlist,
     addToWatchlist,
     removeFromWatchlist,
     isLoading: !watchlist && !error,

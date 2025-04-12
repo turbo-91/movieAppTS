@@ -6,13 +6,35 @@ import MovieCard from "@/components/MovieCard";
 import { IMovie } from "@/db/models/Movie";
 import { useWatchlist } from "@/lib/hooks/useWatchlist";
 import MovieDetail from "@/components/MovieDetail";
+import styled from "styled-components";
 
-export interface LoginProps {
+const WatchlistContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* ensures children start from the left edge */
+  margin-bottom: 0;
+  padding-left: 1rem; /* sets a consistent left offset for all children */
+`;
+
+const CardGrid = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+`;
+
+const Paragraph = styled.h1`
+  font-weight: var(--font-weight-light);
+  text-align: left;
+  margin-left: 1rem;
+`;
+
+export interface WatchlistProps {
   selectedMovie: IMovie | null;
   setSelectedMovie: (movie: IMovie | null) => void;
 }
 
-function Login(props: Readonly<LoginProps>) {
+function Watchlist(props: Readonly<WatchlistProps>) {
   const { setSelectedMovie, selectedMovie } = props;
   const { data: session } = useSession();
   const userName = session?.user?.name || "user";
@@ -22,19 +44,20 @@ function Login(props: Readonly<LoginProps>) {
   if (session) {
     return (
       <>
-        <div>Hi, {userName}!</div>
-        <button onClick={() => signOut()}>Logout</button>
-        <div>Your watchlist:</div>
-
         {selectedMovie ? (
           <MovieDetail
             movie={selectedMovie}
             onBack={() => setSelectedMovie(null)}
           />
         ) : (
-          <>
+          <WatchlistContainer>
+            <Paragraph>{`Hey, ${userName}. Du hast ${
+              watchlist.length === 1
+                ? `einen Film in deiner Watchlist:`
+                : `${watchlist.length} Filme in deiner Watchlist:`
+            }`}</Paragraph>
             {watchlist && watchlist.length > 0 ? (
-              <ul>
+              <CardGrid>
                 {watchlist.map((movie: IMovie) => (
                   <MovieCard
                     key={movie._id}
@@ -42,11 +65,11 @@ function Login(props: Readonly<LoginProps>) {
                     movie={movie}
                   />
                 ))}
-              </ul>
+              </CardGrid>
             ) : (
               <div>No Movies in your watchlist.</div>
             )}
-          </>
+          </WatchlistContainer>
         )}
       </>
     );
@@ -75,4 +98,4 @@ function Login(props: Readonly<LoginProps>) {
   );
 }
 
-export default Login;
+export default Watchlist;
