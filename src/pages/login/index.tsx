@@ -5,11 +5,15 @@ import { customLoader } from "@/lib/constants/constants";
 import MovieCard from "@/components/MovieCard";
 import { IMovie } from "@/db/models/Movie";
 import { useWatchlist } from "@/lib/hooks/useWatchlist";
-import { useState } from "react";
 import MovieDetail from "@/components/MovieDetail";
 
-function Login() {
-  const [selectedMovie, setSelectedMovie] = useState<IMovie | null>(null);
+export interface LoginProps {
+  selectedMovie: IMovie | null;
+  setSelectedMovie: (movie: IMovie | null) => void;
+}
+
+function Login(props: Readonly<LoginProps>) {
+  const { setSelectedMovie, selectedMovie } = props;
   const { data: session } = useSession();
   const userName = session?.user?.name || "user";
   const userId = session?.user?.userId;
