@@ -104,9 +104,12 @@ function SearchPage(props: Readonly<SearchProps>) {
   const isDebouncing = query.trim() !== "" && query !== debouncedQuery;
 
   // Route Protection
-
   const { data: session, status } = useSession();
   const router = useRouter();
+
+  if (status === "unauthenticated") {
+    router.push("/");
+  }
 
   if (status === "loading") {
     return (
@@ -114,11 +117,6 @@ function SearchPage(props: Readonly<SearchProps>) {
         <SquareLoader color="#ffffff" size={20} />
       </SpinnerWrapper>
     );
-  }
-
-  // Redirect to login if not authenticated
-  if (status === "unauthenticated") {
-    router.push("login");
   }
 
   return (
@@ -135,6 +133,7 @@ function SearchPage(props: Readonly<SearchProps>) {
         />
       </InputWrapperTop>
 
+      {/* Search Status Display */}
       {!selectedMovie ? (
         <>
           {query.trim() === "" ? (
@@ -152,6 +151,8 @@ function SearchPage(props: Readonly<SearchProps>) {
                   movies.length === 1 ? "Suchergebnis" : "Suchergebnisse"
                 } für '${query}'...`}</p>
               </ResponseWrapper>
+
+              {/* Search Results Display with detail view on Click */}
               <CardGrid>
                 {movies.map((movie: IMovie) => (
                   <MovieCard

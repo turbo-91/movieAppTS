@@ -3,6 +3,8 @@ import movieThumbnail from "/public/movieThumbnail.png";
 import { imgImdbUrl } from "@/lib/constants/constants";
 import { IMovie } from "@/db/models/Movie";
 
+// ensures that movies get image from both APIs
+
 export async function addImgImdb(movie: IMovie) {
   if (movie.posterImdb === "n/a") return;
   const imdbData = await axios.get(movie.posterImdb);

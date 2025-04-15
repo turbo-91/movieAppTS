@@ -100,7 +100,7 @@ export default function MovieCard(props: Readonly<MovieCardProps>) {
 
     setTimeout(() => {
       setImgSrc(movie.backdropImdb);
-    }, 1000); // 1 second delay
+    }, 1000);
   };
 
   return (
@@ -110,7 +110,6 @@ export default function MovieCard(props: Readonly<MovieCardProps>) {
           <WatchlistButton
             onClick={() => {
               removeFromWatchlist(movie._id);
-              // Optionally refresh the current route if needed:
               router.replace(router.asPath);
             }}
           >

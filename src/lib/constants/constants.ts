@@ -1,3 +1,17 @@
+// API keys
+
+export const imdbKey = process.env.NEXT_PUBLIC_TMDB_KEY;
+export const netzkinoKey = process.env.NEXT_PUBLIC_NETZKINO_KEY;
+
+export const imgImdbUrl = `https://image.tmdb.org/t/p/original`;
+export const netzkinoURL = `https://api.netzkino.de.simplecache.net/capi-2.0a/search`;
+
+// next image
+export const customLoader = ({ src }: { src: string }) => {
+  return src; // ✅ Allows any external image URL
+};
+
+// List of most common German words used in moviesOfTheDay feature to randomize
 export const randomQueries: string[] = [
   "der",
   "die",
@@ -203,13 +217,3 @@ export const randomQueries: string[] = [
 
 export const query =
   randomQueries[Math.floor(Math.random() * randomQueries.length)];
-
-export const imdbKey = process.env.NEXT_PUBLIC_TMDB_KEY;
-export const netzkinoKey = process.env.NEXT_PUBLIC_NETZKINO_KEY;
-
-export const imgImdbUrl = `https://image.tmdb.org/t/p/original`;
-export const netzkinoURL = `https://api.netzkino.de.simplecache.net/capi-2.0a/search`;
-
-export const customLoader = ({ src }: { src: string }) => {
-  return src; // ✅ Allows any external image URL
-};

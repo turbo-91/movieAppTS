@@ -52,16 +52,13 @@ const People = styled.p`
 
 export interface SliderCardProps {
   movie: IMovie;
-  isInWatchlist: boolean;
   onClick: (movie: IMovie) => void;
-  onAddToWatchlist: () => void;
-  onRemoveFromWatchlist: () => void;
 }
 
 export default function SliderCard(props: Readonly<SliderCardProps>) {
   const { movie, onClick } = props;
 
-  // Choose the best image source or fallback
+  // Image handling
   const [imgSrc, setImgSrc] = useState(
     movie.imgNetzkino || movie.backdropImdb || movieThumbnail
   );

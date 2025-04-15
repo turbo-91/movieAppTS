@@ -6,8 +6,6 @@ import Slider from "react-slick";
 import SliderCard from "@/components/SliderCard";
 import MovieDetail from "@/components/MovieDetail";
 import { useEffect } from "react";
-import { useSession } from "next-auth/react";
-import { useWatchlist } from "@/lib/hooks/useWatchlist";
 import { SquareLoader } from "react-spinners";
 import styled from "styled-components";
 
@@ -28,19 +26,8 @@ export default function Home(props: Readonly<HomeProps>) {
   const [error, setError] = useState<Error | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const { data: session } = useSession();
-  const userId = session?.user?.userId;
-
-  // Use top-level watchlist hook
-  const {
-    watchlist,
-    addToWatchlist,
-    removeFromWatchlist,
-    isLoading: isWatchlistLoading,
-  } = useWatchlist(userId);
-
+  // data fetching
   useEffect(() => {
-    // Perform a GET request using fetch
     fetch("/api/moviesoftheday")
       .then((response) => {
         if (!response.ok) {
@@ -91,15 +78,11 @@ export default function Home(props: Readonly<HomeProps>) {
       ) : (
         <Slider {...settings}>
           {movies.map((movie) => {
-            const isInWatchlist = watchlist?.some((m) => m._id === movie._id);
             return (
               <SliderCard
                 key={movie._id}
                 movie={movie}
-                isInWatchlist={isInWatchlist}
                 onClick={() => setSelectedMovie(movie)}
-                onAddToWatchlist={() => addToWatchlist(movie._id)}
-                onRemoveFromWatchlist={() => removeFromWatchlist(movie._id)}
               />
             );
           })}

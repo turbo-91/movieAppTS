@@ -1,12 +1,11 @@
 import React from "react";
-import { useSession, signIn, signOut } from "next-auth/react";
-import Image from "next/image";
-import { customLoader } from "@/lib/constants/constants";
+import { useSession } from "next-auth/react";
 import MovieCard from "@/components/MovieCard";
 import { IMovie } from "@/db/models/Movie";
 import { useWatchlist } from "@/lib/hooks/useWatchlist";
 import MovieDetail from "@/components/MovieDetail";
 import styled from "styled-components";
+import { useRouter } from "next/router";
 
 const WatchlistContainer = styled.div`
   display: flex;
@@ -36,7 +35,14 @@ export interface WatchlistProps {
 
 function Watchlist(props: Readonly<WatchlistProps>) {
   const { setSelectedMovie, selectedMovie } = props;
-  const { data: session } = useSession();
+
+  // Route protection: Redirect to login if not authenticated
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  if (status === "unauthenticated") {
+    router.push("/");
+  }
+
   const userName = session?.user?.name || "user";
   const userId = session?.user?.userId;
   const { watchlist } = useWatchlist(userId);
@@ -74,28 +80,5 @@ function Watchlist(props: Readonly<WatchlistProps>) {
       </>
     );
   }
-
-  return (
-    <div>
-      <button onClick={() => signIn("github")}>
-        Jetzt einloggen mit
-        <Image
-          loader={customLoader}
-          src="/github-mark.png"
-          alt="Github mark"
-          width={20}
-          height={20}
-        />
-        <Image
-          loader={customLoader}
-          src="/GitHub_Logo.png"
-          alt="Github Logo"
-          width={60}
-          height={20}
-        />
-      </button>
-    </div>
-  );
 }
-
 export default Watchlist;
