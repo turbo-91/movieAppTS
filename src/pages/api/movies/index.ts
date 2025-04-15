@@ -75,7 +75,7 @@ const postMovie = async (req: NextApiRequest, res: NextApiResponse) => {
   } catch (error: any) {
     const errorMessage = error.message.includes("Movie validation failed")
       ? "Missing required fields"
-      : "Error creating movie";
+      : "Error finding movie";
 
     return res.status(400).json({ error: errorMessage });
   }
