@@ -52,10 +52,7 @@ const People = styled.p`
 
 export interface SliderCardProps {
   movie: IMovie;
-  isInWatchlist: boolean;
   onClick: (movie: IMovie) => void;
-  onAddToWatchlist: () => void;
-  onRemoveFromWatchlist: () => void;
 }
 
 export default function SliderCard(props: Readonly<SliderCardProps>) {

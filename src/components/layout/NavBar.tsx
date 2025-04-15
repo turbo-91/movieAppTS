@@ -61,7 +61,7 @@ export default function NavBar({
         </>
       )}
       {status === "unauthenticated" && (
-        <NavButton onClick={() => signIn("github")}>Login</NavButton>
+        <CloseButton onClick={() => signIn("github")}>Login</CloseButton>
       )}
       <CloseButton onClick={() => setMenu(false)}>schließen</CloseButton>
     </NavContainer>

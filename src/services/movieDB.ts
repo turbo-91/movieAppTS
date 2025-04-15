@@ -2,6 +2,8 @@ import dbConnect from "@/db/mongodb";
 import Movie from "@/db/models/Movie";
 import { IMovie } from "@/db/models/Movie";
 
+// facilitates movie interactions with the database
+
 export async function postMovies(movies: IMovie[]) {
   await dbConnect();
 

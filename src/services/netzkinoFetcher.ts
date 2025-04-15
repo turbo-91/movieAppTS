@@ -7,6 +7,8 @@ import { NetzkinoMovie } from "@/types/NetzkinoMovie";
 import getApiLink from "@/lib/getApiLink";
 import starSanitizer from "@/lib/starSanitizer";
 
+// fetches and formats movies from Netzkino API
+
 export async function fetchMoviesFromNetzkino(
   query: string
 ): Promise<IMovie[]> {

@@ -138,7 +138,7 @@ interface MovieDetailProps {
 
 export default function MovieDetail({ movie, onBack }: MovieDetailProps) {
   // Session and Watchlist
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const userId = session?.user?.userId; // custom nextAuth type in types folder ensures type safety
   const { isInWatchlist, addToWatchlist, removeFromWatchlist } =
     useWatchlist(userId);
@@ -162,27 +162,29 @@ export default function MovieDetail({ movie, onBack }: MovieDetailProps) {
     <DetailContainer>
       <UnitContainer>
         <ImageContainer>
-          <IconWrapper>
-            {isInWatchlist(movie._id) ? (
-              <WatchlistButton
-                onClick={() => {
-                  removeFromWatchlist(movie._id);
-                  router.replace(router.asPath);
-                }}
-              >
-                <Star
-                  fill="#FFD700"
-                  color="#FFD700"
-                  size={35}
-                  strokeWidth={1}
-                />
-              </WatchlistButton>
-            ) : (
-              <WatchlistButton onClick={() => addToWatchlist(movie._id)}>
-                <Star color="#FFD700" size={35} strokeWidth={1.5} />
-              </WatchlistButton>
-            )}
-          </IconWrapper>
+          {status === "authenticated" && (
+            <IconWrapper>
+              {isInWatchlist(movie._id) ? (
+                <WatchlistButton
+                  onClick={() => {
+                    removeFromWatchlist(movie._id);
+                    router.replace(router.asPath);
+                  }}
+                >
+                  <Star
+                    fill="#FFD700"
+                    color="#FFD700"
+                    size={35}
+                    strokeWidth={1}
+                  />
+                </WatchlistButton>
+              ) : (
+                <WatchlistButton onClick={() => addToWatchlist(movie._id)}>
+                  <Star color="#FFD700" size={35} strokeWidth={1.5} />
+                </WatchlistButton>
+              )}
+            </IconWrapper>
+          )}
           <Image
             loader={customLoader}
             src={imgSrc}
