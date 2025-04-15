@@ -35,9 +35,11 @@ export default function NavBar({
   setMenu,
   setSelectedMovie,
 }: Readonly<NavBarProps>) {
+  // Route protection
   const { data: session, status } = useSession();
   const router = useRouter();
 
+  // Navigation
   const handleNav = (path: string) => {
     setMenu(false);
     setSelectedMovie(null);

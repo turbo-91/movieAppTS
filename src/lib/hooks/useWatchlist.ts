@@ -1,10 +1,8 @@
-// hooks/useWatchlist.ts
-import { useState, useEffect } from "react";
 import useSWR, { mutate } from "swr";
 import { fetcher } from "@/lib/fetcher";
 import { IMovie } from "@/db/models/Movie";
 
-// hooks/useWatchlist.ts
+// Watchlist interactions with database
 
 export const useWatchlist = (userId?: string) => {
   const { data: watchlist, error } = useSWR(

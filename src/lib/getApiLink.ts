@@ -1,3 +1,5 @@
+// helper function to connect Netzkino response to call Imdb
+
 export default function getApiLink(imdbLink: string) {
   const imdbKey = process.env.NEXT_PUBLIC_TMDB_KEY;
   const parts = imdbLink.split("/");
