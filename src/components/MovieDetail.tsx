@@ -9,11 +9,6 @@ import movieThumbnail from "/public/movieThumbnail.png";
 import styled from "styled-components";
 import { Star } from "lucide-react";
 
-interface MovieDetailProps {
-  movie: IMovie;
-  onBack: () => void;
-}
-
 const DetailContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -136,6 +131,11 @@ const WatchlistButton = styled.button`
   font-size: 1.2rem;
 `;
 
+interface MovieDetailProps {
+  movie: IMovie;
+  onBack: () => void;
+}
+
 export default function MovieDetail({ movie, onBack }: MovieDetailProps) {
   // Session and Watchlist
   const { data: session } = useSession();
@@ -158,9 +158,6 @@ export default function MovieDetail({ movie, onBack }: MovieDetailProps) {
     setOverviewExpanded((prev) => !prev);
   };
 
-  console.log("is in Watchlist?", isInWatchlist);
-  console.log("movieId ", movie._id);
-  console.log("userId ", userId);
   return (
     <DetailContainer>
       <UnitContainer>
@@ -170,7 +167,6 @@ export default function MovieDetail({ movie, onBack }: MovieDetailProps) {
               <WatchlistButton
                 onClick={() => {
                   removeFromWatchlist(movie._id);
-                  // Optionally refresh the current route if needed:
                   router.replace(router.asPath);
                 }}
               >

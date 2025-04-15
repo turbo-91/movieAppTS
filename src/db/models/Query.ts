@@ -4,7 +4,6 @@ export interface IQuery extends Document {
   query: string;
 }
 
-// Define Schema with TypeScript
 const queriesSchema = new Schema<IQuery>({
   query: { type: String, required: true },
 });
