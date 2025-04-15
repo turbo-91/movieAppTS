@@ -8,7 +8,7 @@ import { postMovies } from "./movieDB";
 import { addImgImdb, enrichMovies } from "./imdbService";
 import Bottleneck from "bottleneck";
 
-// Fetches movies of the day from Netzkino API, caches them in the database,
+// I. Fetches movies of the day from Netzkino API, caches them in the database,
 // and fetches additional image from ImdB.
 
 export async function getMoviesOfTheDay(randomQueries: string[]) {
@@ -59,6 +59,9 @@ export async function getMoviesOfTheDay(randomQueries: string[]) {
 const limiter = new Bottleneck({
   minTime: 1000, // Wait at least 1000ms between calls
 });
+
+// II. Fetches movies based on a search query from Netzkino API, caches them in the database,
+// and fetches additional image from ImdB.
 
 export async function getSearchMovies(query: string) {
   await dbConnect();

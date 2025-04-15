@@ -1,6 +1,8 @@
 import dbConnect from "@/db/mongodb";
 import Movie from "@/db/models/Movie";
 
+// facilitates watchlist interactions with database
+
 export async function getMoviesByUser(userId: string) {
   await dbConnect();
 

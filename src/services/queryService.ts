@@ -1,6 +1,7 @@
 import dbConnect from "@/db/mongodb";
 import Query from "@/db/models/Query";
-import Movie from "@/db/models/Movie";
+
+// facilitates query interactions with database
 
 export async function getAllQueriesFromDB() {
   await dbConnect();
